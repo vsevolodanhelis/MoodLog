@@ -1,0 +1,1078 @@
+@model MoodLog.Web.Models.SettingsViewModel
+@{
+    ViewData["Title"] = "Settings";
+    Layout = "_DashboardLayout";
+}
+
+<div class="settings-content">
+    <!-- Profile Settings -->
+    <div class="settings-section">
+        <div class="settings-card">
+            <div class="settings-header">
+                <h3>Profile Information</h3>
+                <p>Manage your account details and preferences</p>
+            </div>
+
+            <form class="settings-form">
+                <div class="form-group">
+                    <label for="email" class="form-label">Email Address</label>
+                    <input type="email" id="email" class="form-control" value="@Model.Email" readonly>
+                    <small class="form-text">Email cannot be changed at this time</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="username" class="form-label">Username</label>
+                    <input type="text" id="username" class="form-control" value="@Model.UserName" readonly>
+                    <small class="form-text">Username cannot be changed at this time</small>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Notification Preferences -->
+    <div class="settings-section">
+        <div class="settings-card">
+            <div class="settings-header">
+                <h3><i class="fas fa-bell"></i> Notification Preferences</h3>
+                <p>Manage how and when you receive notifications</p>
+            </div>
+
+            <div class="settings-form">
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <h4>Email Notifications</h4>
+                        <p>Receive mood reminders and updates via email</p>
+                    </div>
+                    <div class="setting-control">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="emailNotifications" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <h4>Daily Mood Reminders</h4>
+                        <p>Get reminded to log your mood each day</p>
+                    </div>
+                    <div class="setting-control">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="dailyReminders" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <h4>Weekly Summaries</h4>
+                        <p>Receive weekly mood analysis reports</p>
+                    </div>
+                    <div class="setting-control">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="weeklySummaries" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <h4>Reminder Time</h4>
+                        <p>When to send daily mood reminders</p>
+                    </div>
+                    <div class="setting-control">
+                        <select class="form-control" id="reminderTime">
+                            <option value="09:00">9:00 AM</option>
+                            <option value="12:00">12:00 PM</option>
+                            <option value="18:00" selected>6:00 PM</option>
+                            <option value="21:00">9:00 PM</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Privacy Settings -->
+    <div class="settings-section">
+        <div class="settings-card">
+            <div class="settings-header">
+                <h3><i class="fas fa-shield-alt"></i> Privacy Settings</h3>
+                <p>Control your data privacy and sharing preferences</p>
+            </div>
+
+            <div class="settings-form">
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <h4>Analytics Data Sharing</h4>
+                        <p>Help improve MoodLog by sharing anonymous usage data</p>
+                    </div>
+                    <div class="setting-control">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="analyticsSharing" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <h4>Research Participation</h4>
+                        <p>Allow your anonymized data to be used for mental health research</p>
+                    </div>
+                    <div class="setting-control">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="researchParticipation">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <h4>Data Visibility</h4>
+                        <p>Who can see your mood data</p>
+                    </div>
+                    <div class="setting-control">
+                        <select class="form-control" id="dataVisibility">
+                            <option value="private" selected>Only Me</option>
+                            <option value="healthcare">Healthcare Providers</option>
+                            <option value="family">Family Members</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mood Tracking Preferences -->
+    <div class="settings-section">
+        <div class="settings-card">
+            <div class="settings-header">
+                <h3><i class="fas fa-heart"></i> Mood Tracking Preferences</h3>
+                <p>Customize how you track and record your moods</p>
+            </div>
+
+            <div class="settings-form">
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <h4>Mood Scale</h4>
+                        <p>Choose your preferred mood rating scale</p>
+                    </div>
+                    <div class="setting-control">
+                        <select class="form-control" id="moodScale">
+                            <option value="5" selected>1-5 Scale (Simple)</option>
+                            <option value="10">1-10 Scale (Detailed)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <h4>Default Tags</h4>
+                        <p>Automatically suggest these tags when logging moods</p>
+                    </div>
+                    <div class="setting-control">
+                        <input type="text" class="form-control" id="defaultTags" placeholder="work, family, exercise" value="work, sleep, exercise">
+                    </div>
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <h4>Quick Entry Mode</h4>
+                        <p>Enable one-tap mood logging from dashboard</p>
+                    </div>
+                    <div class="setting-control">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="quickEntry" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Data Management -->
+    <div class="settings-section">
+        <div class="settings-card">
+            <div class="settings-header">
+                <h3><i class="fas fa-database"></i> Data Management</h3>
+                <p>Manage your data backup, retention, and export preferences</p>
+            </div>
+
+            <div class="settings-form">
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <h4>Automatic Backup</h4>
+                        <p>Automatically backup your mood data to cloud storage</p>
+                    </div>
+                    <div class="setting-control">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="autoBackup" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <h4>Data Retention Period</h4>
+                        <p>How long to keep your mood data</p>
+                    </div>
+                    <div class="setting-control">
+                        <select class="form-control" id="dataRetention">
+                            <option value="1year">1 Year</option>
+                            <option value="2years" selected>2 Years</option>
+                            <option value="5years">5 Years</option>
+                            <option value="forever">Forever</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <h4>Export Data</h4>
+                        <p>Download your mood entries in CSV or JSON format</p>
+                    </div>
+                    <div class="setting-control">
+                        <div class="export-buttons">
+                            <form asp-action="ExportData" method="post" style="display: inline;">
+                                <input type="hidden" name="format" value="csv">
+                                <button type="submit" class="btn btn-outline-primary">
+                                    <i class="fas fa-file-csv me-2"></i>Export CSV
+                                </button>
+                            </form>
+
+                            <form asp-action="ExportData" method="post" style="display: inline;">
+                                <input type="hidden" name="format" value="json">
+                                <button type="submit" class="btn btn-outline-primary">
+                                    <i class="fas fa-file-code me-2"></i>Export JSON
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Accessibility Options -->
+    <div class="settings-section">
+        <div class="settings-card">
+            <div class="settings-header">
+                <h3><i class="fas fa-universal-access"></i> Accessibility Options</h3>
+                <p>Customize the interface for better accessibility</p>
+            </div>
+
+            <div class="settings-form">
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <h4>Font Size</h4>
+                        <p>Adjust the text size throughout the application</p>
+                    </div>
+                    <div class="setting-control">
+                        <select class="form-control" id="fontSize">
+                            <option value="small">Small</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="large">Large</option>
+                            <option value="extra-large">Extra Large</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <h4>High Contrast Mode</h4>
+                        <p>Increase contrast for better visibility</p>
+                    </div>
+                    <div class="setting-control">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="highContrast">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <h4>Reduced Motion</h4>
+                        <p>Minimize animations and transitions</p>
+                    </div>
+                    <div class="setting-control">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="reducedMotion">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Language & Region -->
+    <div class="settings-section">
+        <div class="settings-card">
+            <div class="settings-header">
+                <h3><i class="fas fa-globe"></i> Language & Region</h3>
+                <p>Set your language and regional preferences</p>
+            </div>
+
+            <div class="settings-form">
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <h4>Interface Language</h4>
+                        <p>Choose your preferred language for the interface</p>
+                    </div>
+                    <div class="setting-control">
+                        <select class="form-control" id="language">
+                            <option value="en" selected>English</option>
+                            <option value="es">Español</option>
+                            <option value="fr">Français</option>
+                            <option value="de">Deutsch</option>
+                            <option value="it">Italiano</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <h4>Time Zone</h4>
+                        <p>Set your time zone for accurate mood entry timestamps</p>
+                    </div>
+                    <div class="setting-control">
+                        <select class="form-control" id="timeZone">
+                            <option value="UTC-8">Pacific Time (UTC-8)</option>
+                            <option value="UTC-7">Mountain Time (UTC-7)</option>
+                            <option value="UTC-6">Central Time (UTC-6)</option>
+                            <option value="UTC-5" selected>Eastern Time (UTC-5)</option>
+                            <option value="UTC+0">Greenwich Mean Time (UTC+0)</option>
+                            <option value="UTC+1">Central European Time (UTC+1)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <h4>Date Format</h4>
+                        <p>Choose how dates are displayed</p>
+                    </div>
+                    <div class="setting-control">
+                        <select class="form-control" id="dateFormat">
+                            <option value="MM/DD/YYYY" selected>MM/DD/YYYY</option>
+                            <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+                            <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Security Settings -->
+    <div class="settings-section">
+        <div class="settings-card">
+            <div class="settings-header">
+                <h3><i class="fas fa-lock"></i> Security Settings</h3>
+                <p>Manage your account security and password</p>
+            </div>
+
+            <div class="settings-form">
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <h4>Change Password</h4>
+                        <p>Update your account password for better security</p>
+                    </div>
+                    <div class="setting-control">
+                        <button class="btn btn-outline-secondary" onclick="alert('Password change functionality coming soon!')">
+                            <i class="fas fa-key me-2"></i>Change Password
+                        </button>
+                    </div>
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <h4>Two-Factor Authentication</h4>
+                        <p>Add an extra layer of security to your account</p>
+                    </div>
+                    <div class="setting-control">
+                        <button class="btn btn-outline-primary" onclick="alert('Two-factor authentication coming soon!')">
+                            <i class="fas fa-mobile-alt me-2"></i>Enable 2FA
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Danger Zone -->
+    <div class="settings-section">
+        <div class="settings-card danger-card">
+            <div class="settings-header">
+                <h3><i class="fas fa-exclamation-triangle"></i> Danger Zone</h3>
+                <p>Irreversible actions that affect your account</p>
+            </div>
+
+            <div class="settings-form">
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <h4>Delete Account</h4>
+                        <p>Permanently delete your account and all associated data</p>
+                    </div>
+                    <div class="setting-control">
+                        <button class="btn btn-danger" onclick="confirmDeleteAccount()">
+                            <i class="fas fa-trash me-2"></i>Delete Account
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Settings Page Styles with New Text Color System */
+.settings-content {
+    max-width: 800px;
+}
+
+.settings-section {
+    margin-bottom: 2rem;
+}
+
+.settings-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 2px solid var(--glass-border);
+    border-radius: var(--border-radius-lg);
+    padding: 2rem;
+    transition: all var(--transition-normal);
+    box-shadow: var(--shadow-md);
+}
+
+.settings-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--primary);
+}
+
+.danger-card {
+    border-color: rgba(239, 68, 68, 0.3);
+    background: rgba(239, 68, 68, 0.05);
+}
+
+.settings-header {
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.settings-header h3 {
+    color: var(--text-primary);
+    font-weight: var(--font-weight-semibold);
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.settings-header h3 i {
+    color: var(--text-accent-dark);
+    font-size: 1.1rem;
+}
+
+.settings-header p {
+    color: var(--text-secondary);
+    margin: 0;
+    font-size: 0.95rem;
+}
+
+.settings-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.setting-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 2rem;
+    padding: 1.5rem;
+    background: var(--bg-secondary);
+    border-radius: var(--border-radius-md);
+    border: 2px solid var(--bg-tertiary);
+    transition: all var(--transition-normal);
+    box-shadow: var(--shadow-sm);
+}
+
+.setting-item:hover {
+    background: var(--bg-hover);
+    border-color: var(--primary);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
+}
+
+.setting-info {
+    flex: 1;
+}
+
+.setting-info h4 {
+    color: var(--text-primary);
+    font-weight: var(--font-weight-medium);
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+}
+
+.setting-info p {
+    color: var(--text-secondary);
+    margin: 0;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+.setting-control {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+/* Form Controls */
+.form-control {
+    background: var(--glass-bg);
+    border: 2px solid var(--glass-border);
+    border-radius: var(--border-radius-md);
+    padding: 0.75rem 1rem;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    transition: all var(--transition-normal);
+    min-width: 200px;
+    box-shadow: var(--shadow-sm);
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px rgba(123, 97, 255, 0.15), var(--shadow-md);
+    background: var(--glass-bg-solid);
+}
+
+.form-control:disabled,
+.form-control[readonly] {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-disabled-dark);
+    cursor: not-allowed;
+}
+
+.form-control::placeholder {
+    color: var(--text-tertiary);
+}
+
+.form-text {
+    color: var(--text-tertiary);
+    font-size: 0.8rem;
+    margin-top: 0.25rem;
+    display: block;
+}
+
+.form-label {
+    color: var(--text-secondary);
+    font-weight: var(--font-weight-medium);
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+/* Toggle Switch */
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 24px;
+    cursor: pointer;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--bg-tertiary);
+    border: 2px solid var(--bg-hover);
+    border-radius: 24px;
+    transition: all var(--transition-normal);
+    box-shadow: var(--shadow-sm);
+}
+
+.toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 2px;
+    bottom: 2px;
+    background: var(--text-primary);
+    border-radius: 50%;
+    transition: all var(--transition-normal);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.toggle-switch input:checked + .toggle-slider {
+    background: var(--accent-primary);
+    border-color: var(--accent-primary);
+}
+
+.toggle-switch input:checked + .toggle-slider:before {
+    transform: translateX(26px);
+    background: white;
+}
+
+.toggle-switch input:focus + .toggle-slider {
+    box-shadow: 0 0 0 3px rgba(123, 97, 255, 0.2);
+}
+
+/* Buttons */
+.btn {
+    background: var(--bg-secondary);
+    border: 2px solid var(--bg-tertiary);
+    color: var(--text-secondary);
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--border-radius-md);
+    font-weight: var(--font-weight-medium);
+    transition: all var(--transition-normal);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+}
+
+.btn {
+    box-shadow: var(--shadow-sm);
+}
+
+.btn:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+    transform: translateY(-1px);
+    text-decoration: none;
+    box-shadow: var(--shadow-md);
+}
+
+.btn-outline-primary {
+    border-color: var(--accent-primary);
+    color: var(--text-accent);
+    background: var(--bg-secondary);
+    box-shadow: var(--shadow-sm);
+}
+
+.btn-outline-primary:hover {
+    background: var(--accent-primary);
+    color: var(--text-on-primary);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
+}
+
+.btn-outline-secondary {
+    border-color: var(--bg-tertiary);
+    color: var(--text-secondary);
+    background: var(--bg-secondary);
+    box-shadow: var(--shadow-sm);
+}
+
+.btn-outline-secondary:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+    border-color: var(--primary);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
+}
+
+.btn-danger {
+    background: rgba(239, 68, 68, 0.1);
+    border-color: rgba(239, 68, 68, 0.3);
+    color: #ef4444;
+    box-shadow: var(--shadow-sm);
+}
+
+.btn-danger:hover {
+    background: #ef4444;
+    color: white;
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
+}
+
+/* Export Buttons */
+.export-buttons {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+/* Responsive Design */
+@@media (max-width: 768px) {
+    .settings-card {
+        padding: 1.5rem;
+    }
+
+    .setting-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+        padding: 1rem;
+    }
+
+    .setting-control {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .form-control {
+        min-width: auto;
+        width: 100%;
+    }
+
+    .export-buttons {
+        width: 100%;
+    }
+
+    .export-buttons .btn {
+        flex: 1;
+        justify-content: center;
+    }
+}
+
+/* Accessibility Enhancements */
+@@media (prefers-reduced-motion: reduce) {
+    .settings-card,
+    .setting-item,
+    .toggle-slider,
+    .btn {
+        transition: none;
+    }
+}
+
+/* High Contrast Mode Support */
+@@media (prefers-contrast: high) {
+    .settings-card {
+        border-width: 2px;
+    }
+
+    .setting-item {
+        border-width: 2px;
+    }
+
+    .toggle-slider {
+        border-width: 2px;
+    }
+}
+</style>
+
+@section Scripts {
+    <script>
+        // Enhanced Settings Page JavaScript
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize all toggle switches
+            initializeToggleSwitches();
+
+            // Initialize form controls
+            initializeFormControls();
+
+            // Load saved settings
+            loadSavedSettings();
+        });
+
+        function initializeToggleSwitches() {
+            // Add event listeners to all toggle switches
+            const toggles = document.querySelectorAll('.toggle-switch input[type="checkbox"]');
+            toggles.forEach(toggle => {
+                toggle.addEventListener('change', function() {
+                    handleSettingChange(this.id, this.checked);
+                });
+            });
+        }
+
+        function initializeFormControls() {
+            // Add event listeners to select dropdowns and text inputs
+            const selects = document.querySelectorAll('select');
+            const inputs = document.querySelectorAll('input[type="text"]');
+
+            selects.forEach(select => {
+                select.addEventListener('change', function() {
+                    handleSettingChange(this.id, this.value);
+                });
+            });
+
+            inputs.forEach(input => {
+                input.addEventListener('blur', function() {
+                    handleSettingChange(this.id, this.value);
+                });
+            });
+        }
+
+        function loadSavedSettings() {
+            // Load settings from localStorage
+            const settings = [
+                'emailNotifications', 'dailyReminders', 'weeklySummaries', 'reminderTime',
+                'analyticsSharing', 'researchParticipation', 'dataVisibility',
+                'moodScale', 'defaultTags', 'quickEntry', 'autoBackup', 'dataRetention',
+                'fontSize', 'highContrast', 'reducedMotion',
+                'language', 'timeZone', 'dateFormat'
+            ];
+
+            settings.forEach(settingId => {
+                const savedValue = localStorage.getItem(`moodlog-setting-${settingId}`);
+                if (savedValue !== null) {
+                    const element = document.getElementById(settingId);
+                    if (element) {
+                        if (element.type === 'checkbox') {
+                            element.checked = savedValue === 'true';
+                        } else {
+                            element.value = savedValue;
+                        }
+                    }
+                }
+            });
+
+            // Apply accessibility settings immediately
+            applyAccessibilitySettings();
+        }
+
+        function applyAccessibilitySettings() {
+            // Apply font size setting
+            const fontSize = localStorage.getItem('moodlog-setting-fontSize') || 'medium';
+            applyFontSize(fontSize);
+
+            // Apply high contrast setting
+            const highContrast = localStorage.getItem('moodlog-setting-highContrast') === 'true';
+            applyHighContrast(highContrast);
+
+            // Apply reduced motion setting
+            const reducedMotion = localStorage.getItem('moodlog-setting-reducedMotion') === 'true';
+            applyReducedMotion(reducedMotion);
+        }
+
+        function handleSettingChange(settingId, value) {
+            // Save to localStorage
+            saveSettingToLocalStorage(settingId, value);
+
+            // Apply setting immediately if it affects UI
+            switch(settingId) {
+                case 'fontSize':
+                    applyFontSize(value);
+                    break;
+                case 'highContrast':
+                    applyHighContrast(value);
+                    break;
+                case 'reducedMotion':
+                    applyReducedMotion(value);
+                    break;
+                case 'moodScale':
+                    showSettingsSavedMessage();
+                    // Reload dashboard if we're on it to apply new mood scale
+                    if (window.location.pathname.includes('Dashboard')) {
+                        setTimeout(() => {
+                            if (typeof initializeMoodPicker === 'function') {
+                                initializeMoodPicker();
+                            }
+                        }, 500);
+                    }
+                    break;
+                case 'defaultTags':
+                case 'quickEntry':
+                    showSettingsSavedMessage();
+                    break;
+                case 'emailNotifications':
+                case 'dailyReminders':
+                case 'weeklySummaries':
+                case 'reminderTime':
+                    showComingSoonMessage('Notification settings will be fully functional when email integration is complete.');
+                    break;
+                case 'analyticsSharing':
+                case 'researchParticipation':
+                case 'dataVisibility':
+                    showComingSoonMessage('Privacy settings will be enforced when backend data management is implemented.');
+                    break;
+                case 'autoBackup':
+                case 'dataRetention':
+                    showComingSoonMessage('Data management features will be available when cloud integration is complete.');
+                    break;
+                case 'language':
+                case 'timeZone':
+                case 'dateFormat':
+                    showComingSoonMessage('Localization features are coming in a future update.');
+                    break;
+                default:
+                    showSettingsSavedMessage();
+                    break;
+            }
+        }
+
+        function saveSettingToLocalStorage(settingId, value) {
+            localStorage.setItem(`moodlog-setting-${settingId}`, value);
+        }
+
+        function showSettingsSavedMessage() {
+            showMessage('Settings saved', 'var(--primary)');
+        }
+
+        function showComingSoonMessage(text) {
+            showMessage(text, '#f59e0b', 4000);
+        }
+
+        function showMessage(text, backgroundColor = 'var(--primary)', duration = 2000) {
+            // Remove any existing messages
+            const existingMessages = document.querySelectorAll('.settings-message');
+            existingMessages.forEach(msg => msg.remove());
+
+            const message = document.createElement('div');
+            message.className = 'settings-message';
+            message.textContent = text;
+            message.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${backgroundColor};
+                color: white;
+                padding: 12px 20px;
+                border-radius: 8px;
+                z-index: 1000;
+                font-size: 14px;
+                font-weight: 500;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                animation: slideInRight 0.3s ease;
+                max-width: 300px;
+                line-height: 1.4;
+            `;
+
+            document.body.appendChild(message);
+
+            setTimeout(() => {
+                message.style.animation = 'slideOutRight 0.3s ease';
+                setTimeout(() => {
+                    if (document.body.contains(message)) {
+                        document.body.removeChild(message);
+                    }
+                }, 300);
+            }, duration);
+        }
+
+        // Accessibility Functions
+        function applyFontSize(size) {
+            const root = document.documentElement;
+            const sizeMap = {
+                'small': '0.875',
+                'medium': '1',
+                'large': '1.125',
+                'extra-large': '1.25'
+            };
+
+            const multiplier = sizeMap[size] || '1';
+            root.style.setProperty('--font-size-multiplier', multiplier);
+
+            // Apply to body for immediate effect
+            document.body.style.fontSize = `${multiplier}rem`;
+
+            showSettingsSavedMessage();
+        }
+
+        function applyHighContrast(enabled) {
+            const root = document.documentElement;
+
+            if (enabled) {
+                root.setAttribute('data-high-contrast', 'true');
+                root.style.setProperty('--text-primary', '#000000');
+                root.style.setProperty('--text-secondary', '#333333');
+                root.style.setProperty('--bg-primary', '#ffffff');
+                root.style.setProperty('--bg-secondary', '#f8f9fa');
+                root.style.setProperty('--border', '#000000');
+                root.style.setProperty('--primary', '#0000ff');
+            } else {
+                root.removeAttribute('data-high-contrast');
+                root.style.removeProperty('--text-primary');
+                root.style.removeProperty('--text-secondary');
+                root.style.removeProperty('--bg-primary');
+                root.style.removeProperty('--bg-secondary');
+                root.style.removeProperty('--border');
+                root.style.removeProperty('--primary');
+            }
+
+            showSettingsSavedMessage();
+        }
+
+        function applyReducedMotion(enabled) {
+            const root = document.documentElement;
+
+            if (enabled) {
+                root.setAttribute('data-reduced-motion', 'true');
+                // Add CSS to disable animations
+                const style = document.getElementById('reduced-motion-style') || document.createElement('style');
+                style.id = 'reduced-motion-style';
+                style.textContent = `
+                    [data-reduced-motion="true"] *,
+                    [data-reduced-motion="true"] *::before,
+                    [data-reduced-motion="true"] *::after {
+                        animation-duration: 0.01ms !important;
+                        animation-iteration-count: 1 !important;
+                        transition-duration: 0.01ms !important;
+                        scroll-behavior: auto !important;
+                    }
+                `;
+                document.head.appendChild(style);
+            } else {
+                root.removeAttribute('data-reduced-motion');
+                const style = document.getElementById('reduced-motion-style');
+                if (style) {
+                    style.remove();
+                }
+            }
+
+            showSettingsSavedMessage();
+        }
+
+        function confirmDeleteAccount() {
+            if (confirm('Are you sure you want to delete your account? This action cannot be undone and will permanently delete all your mood data.')) {
+                if (confirm('This is your final warning. Are you absolutely sure you want to delete your account?')) {
+                    showComingSoonMessage('Account deletion functionality will be implemented in a future update.');
+                }
+            }
+        }
+
+        // Add CSS animations for the settings saved message
+        const style = document.createElement('style');
+        style.textContent = `
+            @@keyframes slideInRight {
+                from {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+
+            @@keyframes slideOutRight {
+                from {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+                to {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+}

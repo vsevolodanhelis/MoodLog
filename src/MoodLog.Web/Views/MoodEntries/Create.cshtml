@@ -1,0 +1,325 @@
+@{
+    ViewData["Title"] = "Log Your Mood";
+    Layout = "_DashboardLayout";
+}
+
+<div class="mood-entry-container">
+    <div class="mood-entry-card">
+        <div class="entry-header">
+            <h2>How are you feeling?</h2>
+            <p class="entry-date">@DateTime.Today.ToString("dddd, MMMM dd, yyyy")</p>
+        </div>
+
+        <form id="moodEntryForm" class="mood-form">
+            @Html.AntiForgeryToken()
+
+            <!-- Mood Selection -->
+            <div class="mood-section">
+                <h3>Select your mood</h3>
+                <div class="mood-selector">
+                    <div class="mood-option" data-mood="1" data-label="Very Bad">
+                        <div class="mood-emoji">😢</div>
+                        <span class="mood-label">Very Bad</span>
+                    </div>
+                    <div class="mood-option" data-mood="2" data-label="Bad">
+                        <div class="mood-emoji">😔</div>
+                        <span class="mood-label">Bad</span>
+                    </div>
+                    <div class="mood-option" data-mood="3" data-label="Okay">
+                        <div class="mood-emoji">😐</div>
+                        <span class="mood-label">Okay</span>
+                    </div>
+                    <div class="mood-option" data-mood="4" data-label="Good">
+                        <div class="mood-emoji">😊</div>
+                        <span class="mood-label">Good</span>
+                    </div>
+                    <div class="mood-option" data-mood="5" data-label="Great">
+                        <div class="mood-emoji">😄</div>
+                        <span class="mood-label">Great</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Intensity Slider -->
+            <div class="intensity-section" id="intensitySection" style="display: none;">
+                <h3>How intense is this feeling?</h3>
+                <div class="intensity-slider-container">
+                    <div class="intensity-labels">
+                        <span>Mild</span>
+                        <span>Moderate</span>
+                        <span>Strong</span>
+                        <span>Very Strong</span>
+                        <span>Extreme</span>
+                    </div>
+                    <input type="range" id="intensitySlider" class="intensity-slider" min="1" max="5" value="3">
+                    <div class="intensity-value">
+                        <span id="intensityDisplay">3</span>/5
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tags Section -->
+            <div class="tags-section" id="tagsSection" style="display: none;">
+                <h3>What's affecting your mood? (Optional)</h3>
+                <div class="tag-input-container">
+                    <input type="text" id="tagInput" class="tag-input" placeholder="Type a tag and press Enter...">
+                    <div class="tag-suggestions" id="tagSuggestions"></div>
+                </div>
+                <div class="selected-tags" id="selectedTags"></div>
+                <div class="common-tags">
+                    <span class="common-tag-label">Common tags:</span>
+                    <button type="button" class="tag-suggestion" data-tag="work">work</button>
+                    <button type="button" class="tag-suggestion" data-tag="family">family</button>
+                    <button type="button" class="tag-suggestion" data-tag="exercise">exercise</button>
+                    <button type="button" class="tag-suggestion" data-tag="stress">stress</button>
+                    <button type="button" class="tag-suggestion" data-tag="sleep">sleep</button>
+                    <button type="button" class="tag-suggestion" data-tag="weather">weather</button>
+                    <button type="button" class="tag-suggestion" data-tag="social">social</button>
+                    <button type="button" class="tag-suggestion" data-tag="health">health</button>
+                </div>
+            </div>
+
+            <!-- Notes Section -->
+            <div class="notes-section" id="notesSection" style="display: none;">
+                <h3>Tell us more (Optional)</h3>
+                <textarea id="moodNotes" class="mood-notes" rows="4" placeholder="What happened today? How are you feeling? Any thoughts you'd like to record..."></textarea>
+                <div class="notes-counter">
+                    <span id="notesCount">0</span>/500 characters
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="form-actions" id="formActions" style="display: none;">
+                <button type="button" class="btn btn-secondary" onclick="goBack()">
+                    <i class="fas fa-arrow-left me-2"></i>Back
+                </button>
+                <button type="submit" class="btn btn-primary btn-save" disabled>
+                    <i class="fas fa-save me-2"></i>Save Mood Entry
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Success Modal -->
+<div class="modal fade" id="successModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content success-modal">
+            <div class="modal-body text-center">
+                <div class="success-animation">
+                    <div class="confetti"></div>
+                    <div class="success-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                </div>
+                <h3>Mood Logged Successfully!</h3>
+                <p>Your mood has been recorded. Keep up the great work tracking your emotional wellness!</p>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-primary" onclick="goToDashboard()">
+                        <i class="fas fa-home me-2"></i>Go to Dashboard
+                    </button>
+                    <button type="button" class="btn btn-outline-primary" onclick="logAnother()">
+                        <i class="fas fa-plus me-2"></i>Log Another
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let selectedMood = 0;
+        let selectedIntensity = 3;
+        let selectedTags = [];
+        let currentStep = 0;
+
+        const steps = ['mood', 'intensity', 'tags', 'notes'];
+
+        // Mood selection
+        document.querySelectorAll('.mood-option').forEach(option => {
+            option.addEventListener('click', function() {
+                selectedMood = parseInt(this.dataset.mood);
+
+                // Update UI
+                document.querySelectorAll('.mood-option').forEach(opt => opt.classList.remove('selected'));
+                this.classList.add('selected');
+
+                // Show next step
+                setTimeout(() => {
+                    showStep('intensity');
+                }, 500);
+            });
+        });
+
+        // Intensity slider
+        const intensitySlider = document.getElementById('intensitySlider');
+        const intensityDisplay = document.getElementById('intensityDisplay');
+
+        intensitySlider.addEventListener('input', function() {
+            selectedIntensity = parseInt(this.value);
+            intensityDisplay.textContent = this.value;
+            updateSliderColor();
+        });
+
+        function updateSliderColor() {
+            const percentage = ((selectedIntensity - 1) / 4) * 100;
+            intensitySlider.style.background = `linear-gradient(to right, #667eea 0%, #667eea ${percentage}%, #e2e8f0 ${percentage}%, #e2e8f0 100%)`;
+        }
+
+        // Tag system
+        const tagInput = document.getElementById('tagInput');
+        const selectedTagsContainer = document.getElementById('selectedTags');
+
+        tagInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && this.value.trim()) {
+                addTag(this.value.trim());
+                this.value = '';
+            }
+        });
+
+        document.querySelectorAll('.tag-suggestion').forEach(btn => {
+            btn.addEventListener('click', function() {
+                addTag(this.dataset.tag);
+            });
+        });
+
+        function addTag(tagName) {
+            if (!selectedTags.includes(tagName) && selectedTags.length < 10) {
+                selectedTags.push(tagName);
+                renderTags();
+            }
+        }
+
+        function removeTag(tagName) {
+            selectedTags = selectedTags.filter(tag => tag !== tagName);
+            renderTags();
+        }
+
+        function renderTags() {
+            selectedTagsContainer.innerHTML = selectedTags.map(tag =>
+                `<span class="selected-tag">
+                    ${tag}
+                    <button type="button" class="remove-tag" onclick="removeTag('${tag}')">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </span>`
+            ).join('');
+        }
+
+        // Notes counter
+        const notesTextarea = document.getElementById('moodNotes');
+        const notesCounter = document.getElementById('notesCount');
+
+        notesTextarea.addEventListener('input', function() {
+            const count = this.value.length;
+            notesCounter.textContent = count;
+
+            if (count > 500) {
+                this.value = this.value.substring(0, 500);
+                notesCounter.textContent = 500;
+            }
+        });
+
+        // Step navigation
+        function showStep(stepName) {
+            const stepIndex = steps.indexOf(stepName);
+            if (stepIndex === -1) return;
+
+            currentStep = stepIndex;
+
+            // Hide all sections
+            document.querySelectorAll('.intensity-section, .tags-section, .notes-section, .form-actions').forEach(el => {
+                el.style.display = 'none';
+            });
+
+            // Show current and subsequent sections
+            for (let i = stepIndex; i < steps.length; i++) {
+                const section = document.getElementById(steps[i] + 'Section');
+                if (section) {
+                    section.style.display = 'block';
+                }
+            }
+
+            // Show form actions
+            document.getElementById('formActions').style.display = 'flex';
+
+            // Enable save button if mood is selected
+            const saveBtn = document.querySelector('.btn-save');
+            saveBtn.disabled = selectedMood === 0;
+
+            // Update slider color
+            if (stepName === 'intensity') {
+                updateSliderColor();
+            }
+        }
+
+        function goBack() {
+            if (currentStep > 0) {
+                showStep(steps[currentStep - 1]);
+            } else {
+                window.location.href = '@Url.Action("Index", "Dashboard")';
+            }
+        }
+
+        // Form submission
+        document.getElementById('moodEntryForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            if (selectedMood === 0) {
+                alert('Please select a mood first');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('moodLevel', selectedMood);
+            formData.append('intensity', selectedIntensity);
+            formData.append('notes', notesTextarea.value);
+            formData.append('tags', selectedTags.join(','));
+            formData.append('__RequestVerificationToken', document.querySelector('input[name="__RequestVerificationToken"]').value);
+
+            fetch('@Url.Action("Create", "MoodEntries")', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showSuccessModal();
+                } else {
+                    alert(data.message || 'Failed to save mood entry');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to save mood entry');
+            });
+        });
+
+        function showSuccessModal() {
+            const modal = new bootstrap.Modal(document.getElementById('successModal'));
+            modal.show();
+
+            // Trigger confetti animation
+            setTimeout(() => {
+                document.querySelector('.confetti').classList.add('active');
+            }, 200);
+        }
+
+        function goToDashboard() {
+            window.location.href = '@Url.Action("Index", "Dashboard")';
+        }
+
+        function logAnother() {
+            window.location.reload();
+        }
+
+        function removeTag(tag) {
+            selectedTags = selectedTags.filter(t => t !== tag);
+            renderTags();
+        }
+
+        // Initialize
+        updateSliderColor();
+    </script>
+}

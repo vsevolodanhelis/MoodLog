@@ -1,0 +1,498 @@
+@model MoodLog.Web.Models.AnalyticsViewModel
+@{
+    ViewData["Title"] = "Analytics";
+    Layout = "_DashboardLayout";
+}
+
+<div class="analytics-content">
+    <!-- Stats Overview -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-chart-bar"></i>
+            </div>
+            <div class="stat-info">
+                <div class="stat-number">@Model.TotalEntries</div>
+                <div class="stat-label">Total Entries</div>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-smile"></i>
+            </div>
+            <div class="stat-info">
+                <div class="stat-number">@Model.AverageMood.ToString("F1")</div>
+                <div class="stat-label">Average Mood</div>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-fire"></i>
+            </div>
+            <div class="stat-info">
+                <div class="stat-number">@Model.CurrentStreak</div>
+                <div class="stat-label">Current Streak</div>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-calendar"></i>
+            </div>
+            <div class="stat-info">
+                <div class="stat-number">@DateTime.Today.ToString("MMM dd")</div>
+                <div class="stat-label">Today</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="charts-section">
+        <div class="row g-4">
+            <!-- Mood Trend Chart -->
+            <div class="col-lg-8">
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3>Mood Trend (Last 30 Days)</h3>
+                        <div class="chart-filters">
+                            <select class="form-select form-select-sm" id="trendPeriod">
+                                <option value="30">Last 30 Days</option>
+                                <option value="90">Last 3 Months</option>
+                                <option value="365">Last Year</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="moodTrendChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Mood Distribution Chart -->
+            <div class="col-lg-4">
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3>Mood Distribution</h3>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="moodDistributionChart"></canvas>
+                    </div>
+                    <div class="distribution-legend">
+                        @foreach (var item in Model.MoodDistribution)
+                        {
+                            <div class="legend-item">
+                                <span class="legend-color" data-mood="@item.Key"></span>
+                                <span class="legend-label">@item.Key</span>
+                                <span class="legend-value">@item.Value</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Insights Section -->
+    <div class="insights-section">
+        <div class="insights-card">
+            <h3>Insights & Patterns</h3>
+            <div class="insights-grid">
+                <div class="insight-item">
+                    <div class="insight-icon">
+                        <i class="fas fa-trending-up"></i>
+                    </div>
+                    <div class="insight-content">
+                        <h4>Mood Improvement</h4>
+                        <p>Your average mood has improved by 12% this month compared to last month.</p>
+                    </div>
+                </div>
+                
+                <div class="insight-item">
+                    <div class="insight-icon">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <div class="insight-content">
+                        <h4>Consistency</h4>
+                        <p>You've logged @Model.CurrentStreak consecutive days. Keep up the great work!</p>
+                    </div>
+                </div>
+                
+                <div class="insight-item">
+                    <div class="insight-icon">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <div class="insight-content">
+                        <h4>Best Days</h4>
+                        <p>Your mood tends to be highest on weekends and Fridays.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Analytics Page Styles with New Text Color System */
+.analytics-content {
+    max-width: 1200px;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 2px solid var(--glass-border);
+    border-radius: var(--border-radius-lg);
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: all var(--transition-normal);
+    box-shadow: var(--shadow-md);
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--primary);
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: var(--text-on-primary);
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: var(--font-weight-bold);
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    font-weight: var(--font-weight-medium);
+}
+
+.charts-section {
+    margin-bottom: 2rem;
+}
+
+.chart-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 2px solid var(--glass-border);
+    border-radius: var(--border-radius-lg);
+    padding: 1.5rem;
+    height: 100%;
+    box-shadow: var(--shadow-md);
+}
+
+.chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.chart-header h3 {
+    color: var(--text-primary);
+    font-weight: var(--font-weight-semibold);
+    margin: 0;
+}
+
+.chart-filters .form-select {
+    background: var(--glass-bg);
+    border: 2px solid var(--glass-border);
+    color: var(--text-primary);
+    border-radius: var(--border-radius-md);
+    padding: 0.5rem 0.75rem;
+}
+
+.chart-filters .form-select:focus {
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px rgba(123, 97, 255, 0.15);
+    color: var(--text-primary);
+    background: var(--glass-bg-solid);
+}
+
+.chart-container {
+    height: 300px;
+    position: relative;
+}
+
+.distribution-legend {
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem;
+    border-radius: var(--border-radius-md);
+    transition: background-color var(--transition-fast);
+}
+
+.legend-item:hover {
+    background: var(--bg-hover);
+}
+
+.legend-color {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.legend-label {
+    flex: 1;
+    color: var(--text-secondary);
+    font-weight: var(--font-weight-medium);
+    font-size: 0.9rem;
+}
+
+.legend-value {
+    color: var(--text-tertiary);
+    font-size: 0.8rem;
+    font-weight: var(--font-weight-medium);
+}
+
+.insights-section {
+    margin-bottom: 2rem;
+}
+
+.insights-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 2px solid var(--glass-border);
+    border-radius: var(--border-radius-lg);
+    padding: 2rem;
+    box-shadow: var(--shadow-md);
+}
+
+.insights-card h3 {
+    color: var(--text-primary);
+    font-weight: var(--font-weight-semibold);
+    margin-bottom: 1.5rem;
+}
+
+.insights-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.insight-item {
+    display: flex;
+    gap: 1rem;
+    padding: 1.5rem;
+    background: var(--bg-secondary);
+    border-radius: var(--border-radius-md);
+    border: 2px solid var(--bg-tertiary);
+    transition: all var(--transition-normal);
+}
+
+.insight-item:hover {
+    background: var(--bg-hover);
+    transform: translateY(-2px);
+    border-color: var(--primary);
+}
+
+.insight-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    color: var(--text-on-primary);
+    flex-shrink: 0;
+}
+
+.insight-content h4 {
+    color: var(--text-primary);
+    font-weight: var(--font-weight-semibold);
+    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+}
+
+.insight-content p {
+    color: var(--text-secondary);
+    margin: 0;
+    line-height: 1.5;
+}
+
+/* Responsive Design */
+@@media (max-width: 768px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .stat-card {
+        padding: 1rem;
+    }
+
+    .stat-number {
+        font-size: 1.5rem;
+    }
+
+    .chart-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .insights-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .insight-item {
+        padding: 1rem;
+    }
+}
+</style>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Mood Trend Chart
+        const trendCtx = document.getElementById('moodTrendChart').getContext('2d');
+        const trendData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.MoodTrend.Select(t => new { 
+            x = t.Date.ToString("yyyy-MM-dd"), 
+            y = t.AverageMood 
+        })));
+        
+        new Chart(trendCtx, {
+            type: 'line',
+            data: {
+                datasets: [{
+                    label: 'Average Mood',
+                    data: trendData,
+                    borderColor: '#667eea',
+                    backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#667eea',
+                    pointBorderColor: getComputedStyle(document.documentElement).getPropertyValue('--text-on-primary') || '#fff',
+                    pointBorderWidth: 2,
+                    pointRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    x: {
+                        type: 'time',
+                        time: {
+                            unit: 'day',
+                            displayFormats: {
+                                day: 'MMM dd'
+                            }
+                        },
+                        grid: {
+                            display: false
+                        }
+                    },
+                    y: {
+                        min: 1,
+                        max: 10, // Support both 1-5 and 1-10 scales
+                        ticks: {
+                            stepSize: 1,
+                            callback: function(value) {
+                                // Support both 5-point and 10-point scales
+                                const labels = {
+                                    1: 'Terrible', 2: 'Very Bad', 3: 'Bad', 4: 'Poor', 5: 'Okay',
+                                    6: 'Fine', 7: 'Good', 8: 'Great', 9: 'Excellent', 10: 'Amazing'
+                                };
+                                return labels[value] || value;
+                            }
+                        },
+                        grid: {
+                            color: 'rgba(0,0,0,0.1)'
+                        }
+                    }
+                }
+            }
+        });
+
+        // Mood Distribution Chart
+        const distributionCtx = document.getElementById('moodDistributionChart').getContext('2d');
+        const distributionData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.MoodDistribution));
+        
+        const colors = {
+            // 10-point scale colors
+            'Terrible': '#dc2626',
+            'Very Bad': '#ef4444',
+            'Bad': '#f97316',
+            'Poor': '#f59e0b',
+            'Okay': '#eab308',
+            'Fine': '#84cc16',
+            'Good': '#22c55e',
+            'Great': '#10b981',
+            'Excellent': '#059669',
+            'Amazing': '#047857'
+        };
+        
+        new Chart(distributionCtx, {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(distributionData),
+                datasets: [{
+                    data: Object.values(distributionData),
+                    backgroundColor: Object.keys(distributionData).map(key => colors[key] || '#6b7280'),
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                cutout: '60%'
+            }
+        });
+
+        // Set legend colors
+        document.querySelectorAll('.legend-color').forEach(el => {
+            const mood = el.getAttribute('data-mood');
+            el.style.backgroundColor = colors[mood] || '#6b7280';
+        });
+    </script>
+}

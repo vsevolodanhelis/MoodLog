@@ -1,0 +1,340 @@
+@model List<MoodLog.Web.Models.AdminUserViewModel>
+@{
+    ViewData["Title"] = "User Management";
+    Layout = "_AdminLayout";
+}
+
+<div class="users-management">
+    <!-- Header -->
+    <div class="users-header">
+        <div class="header-info">
+            <h3>User Management</h3>
+            <p class="text-muted">Manage user accounts, permissions, and activity</p>
+        </div>
+        <div class="header-stats">
+            <div class="stat-item">
+                <span class="stat-number">@Model.Count</span>
+                <span class="stat-label">Total Users</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number">@Model.Count(u => !u.IsLocked)</span>
+                <span class="stat-label">Active</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number">@Model.Count(u => u.IsLocked)</span>
+                <span class="stat-label">Locked</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="users-filters">
+        <div class="filter-group">
+            <label for="statusFilter">Status:</label>
+            <select id="statusFilter" class="form-select">
+                <option value="">All Users</option>
+                <option value="active">Active Only</option>
+                <option value="locked">Locked Only</option>
+            </select>
+        </div>
+        
+        <div class="filter-group">
+            <label for="roleFilter">Role:</label>
+            <select id="roleFilter" class="form-select">
+                <option value="">All Roles</option>
+                <option value="Admin">Admin</option>
+                <option value="User">User</option>
+            </select>
+        </div>
+        
+        <div class="filter-group">
+            <label for="searchUsers">Search:</label>
+            <input type="text" id="searchUsers" class="form-control" placeholder="Search by name or email...">
+        </div>
+        
+        <button class="btn btn-outline-secondary" onclick="clearUserFilters()">
+            <i class="fas fa-times"></i>
+            Clear
+        </button>
+    </div>
+
+    <!-- Users Table -->
+    <div class="users-table-container">
+        <div class="table-responsive">
+            <table class="table users-table">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Email Status</th>
+                        <th>Role</th>
+                        <th>Activity</th>
+                        <th>Join Date</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="usersTableBody">
+                    @foreach (var user in Model)
+                    {
+                        <tr class="user-row" 
+                            data-status="@(user.IsLocked ? "locked" : "active")"
+                            data-role="@(user.Roles.FirstOrDefault() ?? "User")"
+                            data-search="@($"{user.UserName} {user.Email}".ToLower())">
+                            
+                            <td>
+                                <div class="user-info">
+                                    <div class="user-avatar">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                    <div class="user-details">
+                                        <div class="user-name">@user.UserName</div>
+                                        <div class="user-id">ID: @user.Id.Substring(0, 8)...</div>
+                                    </div>
+                                </div>
+                            </td>
+                            
+                            <td>
+                                <div class="email-info">
+                                    <div class="email-address">@user.Email</div>
+                                    <div class="email-status">
+                                        @if (user.EmailConfirmed)
+                                        {
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-check"></i> Verified
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-warning">
+                                                <i class="fas fa-exclamation"></i> Unverified
+                                            </span>
+                                        }
+                                    </div>
+                                </div>
+                            </td>
+                            
+                            <td>
+                                <div class="role-badges">
+                                    @if (user.Roles.Any())
+                                    {
+                                        @foreach (var role in user.Roles)
+                                        {
+                                            <span class="badge bg-primary">@role</span>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">User</span>
+                                    }
+                                </div>
+                            </td>
+                            
+                            <td>
+                                <div class="activity-info">
+                                    <div class="entry-count">
+                                        <i class="fas fa-journal-whills"></i>
+                                        @user.TotalEntries entries
+                                    </div>
+                                    @if (user.LastEntry.HasValue)
+                                    {
+                                        <div class="last-activity">
+                                            Last: @user.LastEntry.Value.ToString("MMM dd, yyyy")
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="last-activity text-muted">No entries</div>
+                                    }
+                                </div>
+                            </td>
+                            
+                            <td>
+                                <div class="join-date">
+                                    @user.JoinDate.ToString("MMM dd, yyyy")
+                                </div>
+                            </td>
+                            
+                            <td>
+                                <div class="status-info">
+                                    @if (user.IsLocked)
+                                    {
+                                        <span class="status-badge locked">
+                                            <i class="fas fa-lock"></i>
+                                            Locked
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="status-badge active">
+                                            <i class="fas fa-check-circle"></i>
+                                            Active
+                                        </span>
+                                    }
+                                    
+                                    @if (user.AccessFailedCount > 0)
+                                    {
+                                        <div class="failed-attempts">
+                                            @user.AccessFailedCount failed attempts
+                                        </div>
+                                    }
+                                </div>
+                            </td>
+                            
+                            <td>
+                                <div class="user-actions">
+                                    <button class="btn btn-sm btn-outline-primary" 
+                                            onclick="viewUserDetails('@user.Id')" 
+                                            title="View Details">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    
+                                    @if (user.IsLocked)
+                                    {
+                                        <button class="btn btn-sm btn-outline-success" 
+                                                onclick="toggleUserLockout('@user.Id', false)" 
+                                                title="Unlock User">
+                                            <i class="fas fa-unlock"></i>
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn btn-sm btn-outline-warning" 
+                                                onclick="toggleUserLockout('@user.Id', true)" 
+                                                title="Lock User">
+                                            <i class="fas fa-lock"></i>
+                                        </button>
+                                    }
+                                    
+                                    <button class="btn btn-sm btn-outline-info" 
+                                            onclick="resetUserPassword('@user.Id')" 
+                                            title="Reset Password">
+                                        <i class="fas fa-key"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- User Details Modal -->
+<div class="modal fade" id="userDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">User Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="userDetailsBody">
+                <!-- User details will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Filtering functionality
+        function applyUserFilters() {
+            const statusFilter = document.getElementById('statusFilter').value;
+            const roleFilter = document.getElementById('roleFilter').value;
+            const searchText = document.getElementById('searchUsers').value.toLowerCase();
+            
+            document.querySelectorAll('.user-row').forEach(row => {
+                let show = true;
+                
+                // Status filter
+                if (statusFilter && row.dataset.status !== statusFilter) {
+                    show = false;
+                }
+                
+                // Role filter
+                if (roleFilter && row.dataset.role !== roleFilter) {
+                    show = false;
+                }
+                
+                // Search filter
+                if (searchText && !row.dataset.search.includes(searchText)) {
+                    show = false;
+                }
+                
+                row.style.display = show ? '' : 'none';
+            });
+        }
+        
+        function clearUserFilters() {
+            document.getElementById('statusFilter').value = '';
+            document.getElementById('roleFilter').value = '';
+            document.getElementById('searchUsers').value = '';
+            applyUserFilters();
+        }
+        
+        // Event listeners
+        document.getElementById('statusFilter').addEventListener('change', applyUserFilters);
+        document.getElementById('roleFilter').addEventListener('change', applyUserFilters);
+        document.getElementById('searchUsers').addEventListener('input', applyUserFilters);
+        
+        // User actions
+        function viewUserDetails(userId) {
+            // In a real implementation, you'd fetch user details via AJAX
+            document.getElementById('userDetailsBody').innerHTML = `
+                <div class="text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Loading user details...</p>
+                </div>
+            `;
+            
+            const modal = new bootstrap.Modal(document.getElementById('userDetailsModal'));
+            modal.show();
+            
+            // Simulate loading
+            setTimeout(() => {
+                document.getElementById('userDetailsBody').innerHTML = `
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        User details functionality will be implemented in a future update.
+                        <br><strong>User ID:</strong> ${userId}
+                    </div>
+                `;
+            }, 1000);
+        }
+        
+        function toggleUserLockout(userId, lock) {
+            const action = lock ? 'lock' : 'unlock';
+            
+            if (confirm(`Are you sure you want to ${action} this user?`)) {
+                fetch('@Url.Action("ToggleUserLockout", "Admin")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                    },
+                    body: `userId=${encodeURIComponent(userId)}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload(); // Refresh the page to show updated status
+                    } else {
+                        alert(data.message || 'Failed to update user status');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Failed to update user status');
+                });
+            }
+        }
+        
+        function resetUserPassword(userId) {
+            if (confirm('Are you sure you want to reset this user\'s password? They will need to set a new password.')) {
+                alert('Password reset functionality will be implemented in a future update.');
+            }
+        }
+    </script>
+}

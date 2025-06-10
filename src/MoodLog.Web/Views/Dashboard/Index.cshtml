@@ -1,0 +1,747 @@
+@model MoodLog.Web.Models.DashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard";
+    Layout = "_DashboardLayout";
+}
+
+<div class="dashboard-content">
+    @Html.AntiForgeryToken()
+    <!-- Today's Mood Section -->
+    <div class="today-mood-section">
+        <div class="mood-card">
+            <div class="mood-header">
+                <h2>How are you feeling today?</h2>
+                <p class="mood-date">@DateTime.Today.ToString("dddd, MMMM dd, yyyy")</p>
+            </div>
+            
+            @if (Model.HasTodayEntry)
+            {
+                <div class="current-mood">
+                    <div class="mood-display">
+                        <div class="mood-emoji">@GetMoodEmoji(Model.TodayEntry!.MoodLevel)</div>
+                        <div class="mood-info">
+                            <div class="mood-level">@GetMoodText(Model.TodayEntry!.MoodLevel)</div>
+                            @if (!string.IsNullOrEmpty(Model.TodayEntry.Notes))
+                            {
+                                <div class="mood-notes">@Model.TodayEntry.Notes</div>
+                            }
+                            @if (Model.TodayEntry.TagNames.Any())
+                            {
+                                <div class="mood-tags">
+                                    @foreach (var tag in Model.TodayEntry.TagNames)
+                                    {
+                                        <span class="tag">@tag</span>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </div>
+                    <button class="btn btn-outline-primary btn-sm" onclick="editTodayMood()">
+                        <i class="fas fa-edit me-1"></i>Update
+                    </button>
+                </div>
+            }
+            else
+            {
+                <div class="mood-picker" id="moodPicker">
+                    <div class="emoji-selector" id="emojiSelector">
+                        <!-- Mood buttons will be dynamically generated based on settings -->
+                    </div>
+                    
+                    <div class="mood-form" id="moodForm" style="display: none;">
+                        <div class="form-group">
+                            <label for="moodNotes" class="form-label">Notes (optional)</label>
+                            <textarea id="moodNotes" class="form-control" rows="3" placeholder="How was your day? What affected your mood?"></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="moodTags" class="form-label">Tags (optional)</label>
+                            <div class="tag-selection-container">
+                                <div class="predefined-tags" id="predefinedTags">
+                                    <!-- Predefined tags will be loaded here -->
+                                </div>
+                                <div class="selected-tags-display" id="selectedTagsDisplay">
+                                    <!-- Selected tags will appear here -->
+                                </div>
+                                <input type="text" id="moodTags" class="form-control mt-2" placeholder="Add custom tags (comma-separated)" style="display: none;">
+                                <button type="button" class="btn btn-link btn-sm mt-1" id="toggleCustomTags">
+                                    <i class="fas fa-plus me-1"></i>Add custom tags
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-primary" onclick="saveMood()">
+                                <i class="fas fa-save me-1"></i>Save Mood
+                            </button>
+                            <button type="button" class="btn btn-secondary" onclick="cancelMood()">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Recent Entries Timeline -->
+    <div class="timeline-section">
+        <div class="section-header">
+            <h3>Recent Mood Timeline</h3>
+            <div class="section-actions">
+                <a href="@Url.Action("Create", "MoodEntries")" class="btn btn-primary btn-sm">
+                    <i class="fas fa-plus me-1"></i>New Entry
+                </a>
+                <a href="@Url.Action("Index", "MoodEntries")" class="btn btn-outline-primary btn-sm">
+                    <i class="fas fa-list me-1"></i>View All
+                </a>
+            </div>
+        </div>
+        
+        @if (Model.RecentEntries.Any())
+        {
+            <div class="mood-timeline">
+                @foreach (var entry in Model.RecentEntries.OrderByDescending(e => e.EntryDate))
+                {
+                    <div class="timeline-item">
+                        <div class="timeline-date">
+                            <div class="date-day">@entry.EntryDate.ToString("dd")</div>
+                            <div class="date-month">@entry.EntryDate.ToString("MMM")</div>
+                        </div>
+                        <div class="timeline-content">
+                            <div class="mood-summary">
+                                <span class="mood-emoji">@GetMoodEmoji(entry.MoodLevel)</span>
+                                <span class="mood-text">@GetMoodText(entry.MoodLevel)</span>
+                            </div>
+                            @if (!string.IsNullOrEmpty(entry.Notes))
+                            {
+                                <div class="entry-notes">@entry.Notes</div>
+                            }
+                            @if (entry.TagNames.Any())
+                            {
+                                <div class="entry-tags">
+                                    @foreach (var tag in entry.TagNames)
+                                    {
+                                        <span class="tag-small">@tag</span>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="empty-state">
+                <div class="empty-icon">📊</div>
+                <h4>No mood entries yet</h4>
+                <p>Start tracking your mood to see your timeline here.</p>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+        /* Interactive Tag System Styles */
+        .tag-selection-container {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .predefined-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .tag-btn {
+            background: var(--bg-secondary);
+            border: 2px solid var(--bg-tertiary);
+            border-radius: 20px;
+            padding: 6px 14px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tag-btn:hover {
+            background: var(--bg-hover);
+            border-color: var(--primary);
+            color: var(--text-primary);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .tag-btn.selected {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: var(--text-on-primary);
+            transform: scale(1.05);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .tag-btn.selected:hover {
+            background: var(--primary-hover);
+            transform: scale(1.05) translateY(-1px);
+        }
+
+        .tag-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .tag-btn:hover::before {
+            left: 100%;
+        }
+
+        .selected-tags-display {
+            min-height: 32px;
+            margin-bottom: 8px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .selected-tag {
+            background: var(--accent-primary);
+            color: white;
+            border-radius: 16px;
+            padding: 4px 12px;
+            font-size: 12px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            animation: tagFadeIn 0.3s ease;
+        }
+
+        .selected-tag .remove-tag {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .selected-tag .remove-tag:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+
+        @@keyframes tagFadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.8) translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        @@keyframes tagFadeOut {
+            from {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+            to {
+                opacity: 0;
+                transform: scale(0.8) translateY(-10px);
+            }
+        }
+
+        .tag-fade-out {
+            animation: tagFadeOut 0.3s ease forwards;
+        }
+
+        /* Responsive Design for Tags */
+        @@media (max-width: 768px) {
+            .tag-selection-container {
+                padding: 12px;
+            }
+
+            .predefined-tags {
+                gap: 6px;
+            }
+
+            .tag-btn {
+                padding: 5px 12px;
+                font-size: 12px;
+            }
+
+            .selected-tag {
+                padding: 3px 10px;
+                font-size: 11px;
+            }
+        }
+</style>
+
+@functions {
+    private string GetMoodEmoji(int moodLevel)
+    {
+        // Handle both 5-point and 10-point scales
+        return moodLevel switch
+        {
+            1 => "😭",
+            2 => "😢",
+            3 => "😔",
+            4 => "😕",
+            5 => "😐",
+            6 => "🙂",
+            7 => "😊",
+            8 => "😄",
+            9 => "😁",
+            10 => "🤩",
+            _ => "😐"
+        };
+    }
+
+    private string GetMoodText(int moodLevel)
+    {
+        // Handle both 5-point and 10-point scales
+        return moodLevel switch
+        {
+            1 => "Terrible",
+            2 => "Very Bad",
+            3 => "Bad",
+            4 => "Poor",
+            5 => "Okay",
+            6 => "Fine",
+            7 => "Good",
+            8 => "Great",
+            9 => "Excellent",
+            10 => "Amazing",
+            _ => "Unknown"
+        };
+    }
+}
+
+@section Scripts {
+    <script>
+        let selectedMood = 0;
+
+        // Initialize mood picker based on settings
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeMoodPicker();
+            loadDefaultTags();
+            initializeTagSystem();
+        });
+
+        function initializeMoodPicker() {
+            const moodScale = localStorage.getItem('moodlog-setting-moodScale') || '5';
+            const emojiSelector = document.getElementById('emojiSelector');
+
+            if (!emojiSelector) return;
+
+            // Clear existing buttons
+            emojiSelector.innerHTML = '';
+
+            if (moodScale === '5') {
+                // 1-5 Scale (Simple)
+                const moods = [
+                    { level: 1, emoji: '😢', title: 'Very Bad' },
+                    { level: 2, emoji: '😔', title: 'Bad' },
+                    { level: 3, emoji: '😐', title: 'Okay' },
+                    { level: 4, emoji: '😊', title: 'Good' },
+                    { level: 5, emoji: '😄', title: 'Great' }
+                ];
+                createMoodButtons(moods);
+            } else {
+                // 1-10 Scale (Detailed)
+                const moods = [
+                    { level: 1, emoji: '😭', title: 'Terrible' },
+                    { level: 2, emoji: '😢', title: 'Very Bad' },
+                    { level: 3, emoji: '😔', title: 'Bad' },
+                    { level: 4, emoji: '😕', title: 'Poor' },
+                    { level: 5, emoji: '😐', title: 'Okay' },
+                    { level: 6, emoji: '🙂', title: 'Fine' },
+                    { level: 7, emoji: '😊', title: 'Good' },
+                    { level: 8, emoji: '😄', title: 'Great' },
+                    { level: 9, emoji: '😁', title: 'Excellent' },
+                    { level: 10, emoji: '🤩', title: 'Amazing' }
+                ];
+                createMoodButtons(moods);
+            }
+        }
+
+        function createMoodButtons(moods) {
+            const emojiSelector = document.getElementById('emojiSelector');
+
+            moods.forEach(mood => {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'emoji-btn';
+                button.dataset.mood = mood.level;
+                button.title = mood.title;
+                button.textContent = mood.emoji;
+
+                button.addEventListener('click', function() {
+                    selectedMood = parseInt(this.dataset.mood);
+
+                    // Update UI
+                    document.querySelectorAll('.emoji-btn').forEach(b => b.classList.remove('selected'));
+                    this.classList.add('selected');
+
+                    // Show form
+                    document.getElementById('moodForm').style.display = 'block';
+                });
+
+                emojiSelector.appendChild(button);
+            });
+        }
+
+        let selectedTags = [];
+
+        function loadDefaultTags() {
+            const defaultTags = localStorage.getItem('moodlog-setting-defaultTags');
+            if (defaultTags) {
+                const tagsInput = document.getElementById('moodTags');
+                if (tagsInput && !tagsInput.value) {
+                    tagsInput.placeholder = `Suggestions: ${defaultTags}`;
+                }
+            }
+        }
+
+        function initializeTagSystem() {
+            // Load predefined mood tags
+            const predefinedTags = [
+                { name: 'Happy', color: '#28a745' },
+                { name: 'Sad', color: '#6c757d' },
+                { name: 'Anxious', color: '#ffc107' },
+                { name: 'Angry', color: '#dc3545' },
+                { name: 'Excited', color: '#fd7e14' },
+                { name: 'Calm', color: '#20c997' },
+                { name: 'Stressed', color: '#e83e8c' },
+                { name: 'Tired', color: '#6f42c1' }
+            ];
+
+            const predefinedTagsContainer = document.getElementById('predefinedTags');
+            if (predefinedTagsContainer) {
+                predefinedTags.forEach(tag => {
+                    const tagButton = document.createElement('button');
+                    tagButton.type = 'button';
+                    tagButton.className = 'tag-btn';
+                    tagButton.textContent = tag.name;
+                    tagButton.style.borderColor = tag.color;
+                    tagButton.dataset.tagName = tag.name;
+                    tagButton.dataset.tagColor = tag.color;
+                    tagButton.setAttribute('aria-label', `Toggle ${tag.name} tag`);
+                    tagButton.setAttribute('role', 'button');
+                    tagButton.setAttribute('tabindex', '0');
+
+                    tagButton.addEventListener('click', function() {
+                        toggleTag(tag.name, tag.color);
+                    });
+
+                    // Add keyboard support
+                    tagButton.addEventListener('keydown', function(e) {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            toggleTag(tag.name, tag.color);
+                        }
+                    });
+
+                    predefinedTagsContainer.appendChild(tagButton);
+                });
+            }
+
+            // Initialize custom tags toggle
+            const toggleCustomTags = document.getElementById('toggleCustomTags');
+            const customTagsInput = document.getElementById('moodTags');
+
+            if (toggleCustomTags && customTagsInput) {
+                toggleCustomTags.addEventListener('click', function() {
+                    if (customTagsInput.style.display === 'none') {
+                        customTagsInput.style.display = 'block';
+                        this.innerHTML = '<i class="fas fa-minus me-1"></i>Hide custom tags';
+                    } else {
+                        customTagsInput.style.display = 'none';
+                        this.innerHTML = '<i class="fas fa-plus me-1"></i>Add custom tags';
+                    }
+                });
+            }
+        }
+
+        function toggleTag(tagName, tagColor) {
+            const tagIndex = selectedTags.findIndex(tag => tag.name === tagName);
+
+            if (tagIndex > -1) {
+                // Remove tag
+                removeTagWithAnimation(tagIndex);
+            } else {
+                // Add tag
+                selectedTags.push({ name: tagName, color: tagColor });
+                updateTagButtons();
+                renderSelectedTags();
+            }
+        }
+
+        function removeTagWithAnimation(tagIndex) {
+            const selectedTagsDisplay = document.getElementById('selectedTagsDisplay');
+            const tagElement = selectedTagsDisplay.children[tagIndex];
+
+            if (tagElement) {
+                tagElement.classList.add('tag-fade-out');
+                setTimeout(() => {
+                    selectedTags.splice(tagIndex, 1);
+                    updateTagButtons();
+                    renderSelectedTags();
+                }, 300);
+            } else {
+                selectedTags.splice(tagIndex, 1);
+                updateTagButtons();
+                renderSelectedTags();
+            }
+        }
+
+        function updateTagButtons() {
+            const tagButtons = document.querySelectorAll('.tag-btn');
+            tagButtons.forEach(button => {
+                const tagName = button.dataset.tagName;
+                const isSelected = selectedTags.some(tag => tag.name === tagName);
+
+                if (isSelected) {
+                    button.classList.add('selected');
+                    button.style.backgroundColor = button.dataset.tagColor;
+                } else {
+                    button.classList.remove('selected');
+                    button.style.backgroundColor = '';
+                }
+            });
+        }
+
+        function renderSelectedTags() {
+            const selectedTagsDisplay = document.getElementById('selectedTagsDisplay');
+            if (!selectedTagsDisplay) return;
+
+            selectedTagsDisplay.innerHTML = '';
+
+            selectedTags.forEach((tag, index) => {
+                const tagElement = document.createElement('div');
+                tagElement.className = 'selected-tag';
+                tagElement.style.backgroundColor = tag.color;
+
+                tagElement.innerHTML = `
+                    <span>${tag.name}</span>
+                    <button type="button" class="remove-tag" onclick="removeTagWithAnimation(${index})">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+
+                selectedTagsDisplay.appendChild(tagElement);
+            });
+
+            // Update hidden input for form submission
+            updateTagsInput();
+        }
+
+        function updateTagsInput() {
+            const customTagsInput = document.getElementById('moodTags');
+            const customTags = customTagsInput && customTagsInput.style.display !== 'none' ? customTagsInput.value : '';
+
+            // Combine selected predefined tags with custom tags
+            const allTags = [...selectedTags.map(tag => tag.name)];
+            if (customTags) {
+                const customTagArray = customTags.split(',').map(tag => tag.trim()).filter(tag => tag);
+                allTags.push(...customTagArray);
+            }
+
+            // Store in a hidden field or update the existing input
+            if (customTagsInput) {
+                customTagsInput.dataset.allTags = allTags.join(',');
+            }
+        }
+        
+        function saveMood() {
+            console.log('saveMood called, selectedMood:', selectedMood);
+
+            if (selectedMood === 0) {
+                alert('Please select a mood first');
+                return;
+            }
+
+            // Validate mood level
+            if (selectedMood < 1 || selectedMood > 10) {
+                alert('Invalid mood level selected');
+                return;
+            }
+
+            const notes = document.getElementById('moodNotes').value;
+
+            // Get all tags (predefined + custom)
+            updateTagsInput();
+            const customTagsInput = document.getElementById('moodTags');
+            const customTags = customTagsInput && customTagsInput.style.display !== 'none' ? customTagsInput.value : '';
+            const allTags = [...selectedTags.map(tag => tag.name)];
+            if (customTags) {
+                const customTagArray = customTags.split(',').map(tag => tag.trim()).filter(tag => tag);
+                allTags.push(...customTagArray);
+            }
+            const tags = allTags.join(',');
+
+            const tokenElement = document.querySelector('input[name="__RequestVerificationToken"]');
+            if (!tokenElement) {
+                alert('Security token not found. Please refresh the page and try again.');
+                return;
+            }
+
+            const token = tokenElement.value;
+            console.log('Token found:', !!token);
+
+            // Disable the save button to prevent double submission
+            const saveButton = document.querySelector('button[onclick="saveMood()"]');
+            if (saveButton) {
+                saveButton.disabled = true;
+                saveButton.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Saving...';
+            }
+
+            fetch('@Url.Action("LogMood", "Dashboard")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: new URLSearchParams({
+                    __RequestVerificationToken: token,
+                    moodLevel: selectedMood,
+                    notes: notes || '',
+                    tags: tags || ''
+                })
+            })
+            .then(response => {
+                console.log('Response status:', response.status);
+
+                // Re-enable the save button
+                if (saveButton) {
+                    saveButton.disabled = false;
+                    saveButton.innerHTML = '<i class="fas fa-save me-1"></i>Save Mood';
+                }
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                return response.json();
+            })
+            .then(data => {
+                console.log('Response data:', data);
+                if (data.success) {
+                    // Show success message
+                    showSuccessMessage('Mood saved successfully!');
+
+                    // Reset form and reload page after a short delay
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1000);
+                } else {
+                    alert(data.message || 'Failed to save mood entry');
+                }
+            })
+            .catch(error => {
+                console.error('Error saving mood:', error);
+
+                // Re-enable the save button
+                if (saveButton) {
+                    saveButton.disabled = false;
+                    saveButton.innerHTML = '<i class="fas fa-save me-1"></i>Save Mood';
+                }
+
+                alert('Failed to save mood entry. Please check your connection and try again.');
+            });
+        }
+        
+        function cancelMood() {
+            selectedMood = 0;
+            selectedTags = [];
+            document.querySelectorAll('.emoji-btn').forEach(b => b.classList.remove('selected'));
+            document.getElementById('moodForm').style.display = 'none';
+            document.getElementById('moodNotes').value = '';
+            document.getElementById('moodTags').value = '';
+            updateTagButtons();
+            renderSelectedTags();
+        }
+        
+        function editTodayMood() {
+            // Implement edit functionality
+            location.reload();
+        }
+
+        function showSuccessMessage(message) {
+            // Create and show a success message
+            const successDiv = document.createElement('div');
+            successDiv.className = 'success-message';
+            successDiv.textContent = message;
+            successDiv.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #10B981;
+                color: white;
+                padding: 12px 20px;
+                border-radius: 8px;
+                z-index: 1000;
+                font-size: 14px;
+                font-weight: 500;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                animation: slideInRight 0.3s ease;
+            `;
+
+            document.body.appendChild(successDiv);
+
+            setTimeout(() => {
+                successDiv.style.animation = 'slideOutRight 0.3s ease';
+                setTimeout(() => {
+                    if (document.body.contains(successDiv)) {
+                        document.body.removeChild(successDiv);
+                    }
+                }, 300);
+            }, 2000);
+        }
+
+        // Add CSS animations for success message
+        const style = document.createElement('style');
+        style.textContent = `
+            @@keyframes slideInRight {
+                from {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+
+            @@keyframes slideOutRight {
+                from {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+                to {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+}

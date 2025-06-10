@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - MoodLog</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <link rel="stylesheet" href="~/css/design-system.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <style>
+        /* Global reset for any floating label interference */
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: var(--font-family);
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="dots" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="1" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23dots)"/></svg>');
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        .auth-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .auth-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow-lg);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            overflow: hidden;
+            max-width: 450px;
+            width: 100%;
+            transition: all var(--transition-normal);
+        }
+        
+        .auth-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: var(--text-on-primary);
+            padding: 40px 30px 30px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .auth-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/><circle cx="50" cy="10" r="0.5" fill="white" opacity="0.1"/><circle cx="10" cy="60" r="0.5" fill="white" opacity="0.1"/><circle cx="90" cy="40" r="0.5" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+        }
+        
+        .auth-header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            font-weight: 300;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .auth-header .subtitle {
+            margin: 10px 0 0;
+            opacity: 0.9;
+            font-size: 1.1rem;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .auth-body {
+            padding: 40px 30px;
+        }
+
+        /* Force all labels to be static and visible */
+        .auth-body label,
+        .auth-body .form-label,
+        .auth-body label[for] {
+            position: static !important;
+            transform: none !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+            display: block !important;
+            margin-bottom: 8px !important;
+            color: var(--text-secondary) !important;
+            font-weight: 600 !important;
+            font-size: 0.875rem !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.5px !important;
+            background: none !important;
+            padding: 0 !important;
+            pointer-events: auto !important;
+            z-index: auto !important;
+            top: auto !important;
+            left: auto !important;
+            width: auto !important;
+            height: auto !important;
+            line-height: normal !important;
+        }
+        
+        /* Completely disable floating labels */
+        .auth-body .form-floating {
+            position: static !important;
+        }
+
+        .auth-body .form-floating > label {
+            position: static !important;
+            transform: none !important;
+            opacity: 1 !important;
+            color: var(--text-secondary) !important;
+            font-weight: 600 !important;
+            font-size: 0.875rem !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.5px !important;
+            background: none !important;
+            padding: 0 !important;
+            margin-bottom: 8px !important;
+            display: block !important;
+            pointer-events: auto !important;
+            z-index: auto !important;
+            top: auto !important;
+            left: auto !important;
+            width: auto !important;
+            height: auto !important;
+        }
+
+        .auth-body .form-floating > .form-control {
+            padding-top: 12px !important;
+            padding-bottom: 12px !important;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+            position: relative;
+        }
+
+        .form-label {
+            display: block !important;
+            position: static !important;
+            margin-bottom: 8px !important;
+            color: var(--text-secondary) !important;
+            font-weight: 600 !important;
+            font-size: 0.875rem !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.5px !important;
+            transform: none !important;
+            opacity: 1 !important;
+            background: none !important;
+            padding: 0 !important;
+            pointer-events: auto !important;
+            z-index: auto !important;
+        }
+
+        .form-control {
+            display: block !important;
+            width: 100% !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            border-radius: var(--border-radius-md) !important;
+            padding: 12px 16px !important;
+            height: 50px !important;
+            transition: all var(--transition-normal) !important;
+            background: rgba(255, 255, 255, 0.9) !important;
+            backdrop-filter: blur(10px) !important;
+            -webkit-backdrop-filter: blur(10px) !important;
+            font-size: 1rem !important;
+            line-height: 1.5 !important;
+            color: var(--text-primary) !important;
+            font-family: var(--font-family) !important;
+            background-clip: padding-box !important;
+            appearance: none !important;
+            position: static !important;
+        }
+
+        .form-control:focus {
+            border-color: var(--accent-primary) !important;
+            box-shadow: 0 0 0 3px rgba(123, 97, 255, 0.1) !important;
+            background: rgba(255, 255, 255, 0.95) !important;
+            outline: none !important;
+        }
+
+        .form-control::placeholder {
+            color: var(--text-tertiary) !important;
+            opacity: 1 !important;
+        }
+
+        .text-danger {
+            color: #dc3545 !important;
+            font-size: 0.75rem;
+            margin-top: 5px;
+            display: block;
+        }
+
+        .form-text {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            margin-top: 5px;
+            display: block;
+        }
+
+        .form-check {
+            padding-left: 0;
+            margin-bottom: 0;
+        }
+
+        .form-check-input {
+            width: 18px;
+            height: 18px;
+            margin-right: 8px;
+            border: 2px solid #d1d5db;
+            border-radius: 4px;
+            background-color: var(--bg-secondary);
+            transition: all 0.3s ease;
+        }
+
+        .form-check-input:checked {
+            background-color: #667eea;
+            border-color: #667eea;
+        }
+
+        .form-check-input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.15);
+        }
+
+        .form-check-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+            user-select: none;
+        }
+        
+        .btn-auth {
+            background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+            border: none;
+            border-radius: var(--border-radius-md);
+            padding: 12px 30px;
+            font-family: var(--font-family);
+            font-weight: var(--font-weight-semibold);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all var(--transition-normal);
+            width: 100%;
+            margin-top: 10px;
+            color: var(--text-on-primary);
+        }
+
+        .btn-auth:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(123, 97, 255, 0.3);
+            color: var(--text-on-primary);
+        }
+        
+        .auth-links {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+        }
+        
+        .auth-links a {
+            color: var(--text-accent);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .auth-links a:hover {
+            color: var(--text-interactive);
+        }
+        
+        .validation-summary-errors {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            color: #721c24;
+        }
+        
+        .validation-summary-errors ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        
+        .text-danger {
+            color: #dc3545 !important;
+            font-size: 0.875rem;
+            margin-top: 5px;
+        }
+        
+        .mood-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            opacity: 0.9;
+        }
+        
+        @@media (max-width: 576px) {
+            .auth-card {
+                margin: 10px;
+                border-radius: 15px;
+            }
+
+            .auth-header {
+                padding: 30px 20px 20px;
+            }
+
+            .auth-header h1 {
+                font-size: 2rem;
+            }
+
+            .auth-body {
+                padding: 30px 20px;
+            }
+
+            .row > .col-md-6 {
+                margin-bottom: 0;
+            }
+
+            .form-group {
+                margin-bottom: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <div class="mood-icon">
+                    <i class="fas fa-heart"></i>
+                </div>
+                <h1>MoodLog</h1>
+                <div class="subtitle">Daily Mood Tracker</div>
+            </div>
+            <div class="auth-body">
+                @RenderBody()
+            </div>
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

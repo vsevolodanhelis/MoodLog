@@ -1,0 +1,292 @@
+@model MoodLog.Web.Models.MoodEntryListViewModel
+@{
+    ViewData["Title"] = "All Mood Entries";
+    Layout = "_DashboardLayout";
+}
+
+<div class="mood-entries-index">
+    <!-- Header -->
+    <div class="entries-header">
+        <div class="header-info">
+            <h2>All Mood Entries</h2>
+            <p class="text-muted">View and manage all your mood tracking entries</p>
+        </div>
+        <div class="header-actions">
+            <a href="@Url.Action("Create", "MoodEntries")" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>New Entry
+            </a>
+            <a href="@Url.Action("History", "MoodEntries")" class="btn btn-outline-primary">
+                <i class="fas fa-calendar me-2"></i>Calendar View
+            </a>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="quick-stats">
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-journal-whills"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-number">@Model.TotalEntries</div>
+                <div class="stat-label">Total Entries</div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-smile"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-number">@Model.AverageMood.ToString("F1")</div>
+                <div class="stat-label">Average Mood</div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-calendar-check"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-number">@(Model.Entries.Any() ? (DateTime.Today - Model.Entries.Min(e => e.EntryDate)).Days + 1 : 0)</div>
+                <div class="stat-label">Days Tracked</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="entries-filters">
+        <div class="filter-group">
+            <label for="dateFilter">Date Range:</label>
+            <select id="dateFilter" class="form-select">
+                <option value="">All Time</option>
+                <option value="7">Last 7 days</option>
+                <option value="30">Last 30 days</option>
+                <option value="90">Last 3 months</option>
+            </select>
+        </div>
+        
+        <div class="filter-group">
+            <label for="moodFilter">Mood Level:</label>
+            <select id="moodFilter" class="form-select">
+                <option value="">All Moods</option>
+                <option value="1">😢 Very Bad</option>
+                <option value="2">😔 Bad</option>
+                <option value="3">😐 Okay</option>
+                <option value="4">😊 Good</option>
+                <option value="5">😄 Great</option>
+            </select>
+        </div>
+        
+        <div class="filter-group">
+            <label for="searchEntries">Search:</label>
+            <input type="text" id="searchEntries" class="form-control" placeholder="Search notes...">
+        </div>
+        
+        <button class="btn btn-outline-secondary" onclick="clearFilters()">
+            <i class="fas fa-times"></i>
+            Clear
+        </button>
+    </div>
+
+    <!-- Entries List -->
+    <div class="entries-container">
+        @if (Model.Entries.Any())
+        {
+            <div class="entries-list" id="entriesList">
+                @foreach (var entry in Model.Entries.OrderByDescending(e => e.EntryDate))
+                {
+                    <div class="entry-card"
+                         data-mood="@entry.MoodLevel"
+                         data-date="@entry.EntryDate.ToString("yyyy-MM-dd")"
+                         data-notes="@(entry.Notes?.ToLower() ?? "")">
+                        
+                        <div class="entry-header">
+                            <div class="entry-date">
+                                <div class="date-main">@entry.EntryDate.ToString("MMM dd")</div>
+                                <div class="date-year">@entry.EntryDate.ToString("yyyy")</div>
+                                <div class="date-day">@entry.EntryDate.ToString("dddd")</div>
+                            </div>
+                            
+                            <div class="entry-mood">
+                                <div class="mood-emoji">@GetMoodEmoji(entry.MoodLevel)</div>
+                                <div class="mood-info">
+                                    <div class="mood-text">@GetMoodText(entry.MoodLevel)</div>
+                                    <div class="mood-level">@entry.MoodLevel/10</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="entry-content">
+                            @if (!string.IsNullOrEmpty(entry.Notes))
+                            {
+                                <div class="entry-notes">
+                                    <i class="fas fa-quote-left"></i>
+                                    @entry.Notes
+                                </div>
+                            }
+                            
+                            @if (!string.IsNullOrEmpty(entry.Symptoms))
+                            {
+                                <div class="entry-symptoms">
+                                    <i class="fas fa-heartbeat"></i>
+                                    @entry.Symptoms
+                                </div>
+                            }
+                            
+                            @if (entry.TagNames.Any())
+                            {
+                                <div class="entry-tags">
+                                    <i class="fas fa-tags"></i>
+                                    @foreach (var tag in entry.TagNames)
+                                    {
+                                        <span class="tag">@tag</span>
+                                    }
+                                </div>
+                            }
+                        </div>
+                        
+                        <div class="entry-actions">
+                            <button class="action-btn" onclick="viewEntryDetails(@entry.Id)" title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <a href="@Url.Action("Edit", "MoodEntries", new { id = entry.Id })" class="action-btn" title="Edit Entry">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <button class="action-btn delete-btn" onclick="deleteEntry(@entry.Id)" title="Delete Entry">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="empty-state">
+                <div class="empty-icon">📝</div>
+                <h3>No mood entries yet</h3>
+                <p>Start tracking your mood to see your entries here.</p>
+                <a href="@Url.Action("Create", "MoodEntries")" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>Create Your First Entry
+                </a>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Entry Details Modal -->
+<div class="modal fade" id="entryDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Entry Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="entryDetailsBody">
+                <!-- Entry details will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+@functions {
+    private string GetMoodEmoji(int moodLevel)
+    {
+        return moodLevel switch
+        {
+            <= 2 => "😢",
+            <= 4 => "😔",
+            <= 6 => "😐",
+            <= 8 => "😊",
+            _ => "😄"
+        };
+    }
+
+    private string GetMoodText(int moodLevel)
+    {
+        return moodLevel switch
+        {
+            1 => "Extremely Low",
+            2 => "Very Low",
+            3 => "Low",
+            4 => "Below Average",
+            5 => "Average",
+            6 => "Above Average",
+            7 => "Good",
+            8 => "Very Good",
+            9 => "Excellent",
+            10 => "Outstanding",
+            _ => "Unknown"
+        };
+    }
+}
+
+@section Scripts {
+    <script>
+        // Filtering functionality
+        function applyFilters() {
+            const dateFilter = document.getElementById('dateFilter').value;
+            const moodFilter = document.getElementById('moodFilter').value;
+            const searchText = document.getElementById('searchEntries').value.toLowerCase();
+            
+            document.querySelectorAll('.entry-card').forEach(card => {
+                let show = true;
+                
+                // Date filter
+                if (dateFilter) {
+                    const entryDate = new Date(card.dataset.date);
+                    const cutoffDate = new Date();
+                    cutoffDate.setDate(cutoffDate.getDate() - parseInt(dateFilter));
+                    if (entryDate < cutoffDate) show = false;
+                }
+                
+                // Mood filter
+                if (moodFilter && card.dataset.mood !== moodFilter) {
+                    show = false;
+                }
+                
+                // Search filter
+                if (searchText && !card.dataset.notes.includes(searchText)) {
+                    show = false;
+                }
+                
+                card.style.display = show ? 'block' : 'none';
+            });
+        }
+        
+        function clearFilters() {
+            document.getElementById('dateFilter').value = '';
+            document.getElementById('moodFilter').value = '';
+            document.getElementById('searchEntries').value = '';
+            applyFilters();
+        }
+        
+        // Event listeners
+        document.getElementById('dateFilter').addEventListener('change', applyFilters);
+        document.getElementById('moodFilter').addEventListener('change', applyFilters);
+        document.getElementById('searchEntries').addEventListener('input', applyFilters);
+        
+        // Entry actions
+        function viewEntryDetails(entryId) {
+            // In a real implementation, you'd fetch entry details via AJAX
+            document.getElementById('entryDetailsBody').innerHTML = `
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    Entry details view will be implemented in a future update.
+                    <br><strong>Entry ID:</strong> ${entryId}
+                </div>
+            `;
+            
+            const modal = new bootstrap.Modal(document.getElementById('entryDetailsModal'));
+            modal.show();
+        }
+        
+        function deleteEntry(entryId) {
+            if (confirm('Are you sure you want to delete this mood entry? This action cannot be undone.')) {
+                // Implementation would go here
+                alert('Delete entry functionality will be implemented in a future update.');
+            }
+        }
+    </script>
+}

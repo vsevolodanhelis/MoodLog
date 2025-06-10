@@ -1,0 +1,349 @@
+@model List<MoodLog.Web.Models.AdminTagViewModel>
+@{
+    ViewData["Title"] = "Tag Management";
+    Layout = "_AdminLayout";
+}
+
+<div class="tags-management">
+    <!-- Header -->
+    <div class="tags-header">
+        <div class="header-info">
+            <h3>Tag Management</h3>
+            <p class="text-muted">Create and manage mood tags and categories</p>
+        </div>
+        <button class="btn btn-primary" onclick="showCreateTagModal()">
+            <i class="fas fa-plus me-2"></i>Create New Tag
+        </button>
+    </div>
+
+    <!-- Stats -->
+    <div class="tags-stats">
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-tags"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-number">@Model.Count</div>
+                <div class="stat-label">Total Tags</div>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-number">@Model.Count(t => t.IsActive)</div>
+                <div class="stat-label">Active Tags</div>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-cog"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-number">@Model.Count(t => t.IsSystemTag)</div>
+                <div class="stat-label">System Tags</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="tags-filters">
+        <div class="filter-group">
+            <label for="statusFilter">Status:</label>
+            <select id="statusFilter" class="form-select">
+                <option value="">All Tags</option>
+                <option value="active">Active Only</option>
+                <option value="inactive">Inactive Only</option>
+            </select>
+        </div>
+        
+        <div class="filter-group">
+            <label for="typeFilter">Type:</label>
+            <select id="typeFilter" class="form-select">
+                <option value="">All Types</option>
+                <option value="system">System Tags</option>
+                <option value="custom">Custom Tags</option>
+            </select>
+        </div>
+        
+        <div class="filter-group">
+            <label for="searchTags">Search:</label>
+            <input type="text" id="searchTags" class="form-control" placeholder="Search tags...">
+        </div>
+        
+        <button class="btn btn-outline-secondary" onclick="clearTagFilters()">
+            <i class="fas fa-times"></i>
+            Clear
+        </button>
+    </div>
+
+    <!-- Tags Grid -->
+    <div class="tags-grid" id="tagsGrid">
+        @foreach (var tag in Model.OrderBy(t => t.Name))
+        {
+            <div class="tag-card" 
+                 data-status="@(tag.IsActive ? "active" : "inactive")"
+                 data-type="@(tag.IsSystemTag ? "system" : "custom")"
+                 data-search="@tag.Name.ToLower()">
+                
+                <div class="tag-header">
+                    <div class="tag-color" style="background-color: @tag.Color"></div>
+                    <div class="tag-badges">
+                        @if (tag.IsSystemTag)
+                        {
+                            <span class="badge bg-info">System</span>
+                        }
+                        @if (!tag.IsActive)
+                        {
+                            <span class="badge bg-secondary">Inactive</span>
+                        }
+                    </div>
+                </div>
+                
+                <div class="tag-content">
+                    <h5 class="tag-name">@tag.Name</h5>
+                    @if (!string.IsNullOrEmpty(tag.Description))
+                    {
+                        <p class="tag-description">@tag.Description</p>
+                    }
+                    
+                    <div class="tag-meta">
+                        <div class="tag-usage">
+                            <i class="fas fa-chart-bar"></i>
+                            @tag.UsageCount uses
+                        </div>
+                        <div class="tag-created">
+                            <i class="fas fa-calendar"></i>
+                            @tag.CreatedAt.ToString("MMM dd, yyyy")
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tag-actions">
+                    <button class="btn btn-sm btn-outline-primary" 
+                            onclick="editTag(@tag.Id)" 
+                            title="Edit Tag">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    
+                    @if (tag.IsActive)
+                    {
+                        <button class="btn btn-sm btn-outline-warning" 
+                                onclick="toggleTagStatus(@tag.Id, false)" 
+                                title="Deactivate Tag">
+                            <i class="fas fa-pause"></i>
+                        </button>
+                    }
+                    else
+                    {
+                        <button class="btn btn-sm btn-outline-success" 
+                                onclick="toggleTagStatus(@tag.Id, true)" 
+                                title="Activate Tag">
+                            <i class="fas fa-play"></i>
+                        </button>
+                    }
+                    
+                    @if (!tag.IsSystemTag)
+                    {
+                        <button class="btn btn-sm btn-outline-danger" 
+                                onclick="deleteTag(@tag.Id)" 
+                                title="Delete Tag">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Create/Edit Tag Modal -->
+<div class="modal fade" id="tagModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="tagModalTitle">Create New Tag</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="tagForm">
+                @Html.AntiForgeryToken()
+                <div class="modal-body">
+                    <input type="hidden" id="tagId" name="Id" value="0">
+                    
+                    <div class="mb-3">
+                        <label for="tagName" class="form-label">Tag Name *</label>
+                        <input type="text" class="form-control" id="tagName" name="Name" required maxlength="50">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="tagDescription" class="form-label">Description</label>
+                        <textarea class="form-control" id="tagDescription" name="Description" rows="3" maxlength="200"></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="tagColor" class="form-label">Color</label>
+                        <div class="color-picker-container">
+                            <input type="color" class="form-control form-control-color" id="tagColor" name="Color" value="#667eea">
+                            <div class="color-presets">
+                                <button type="button" class="color-preset" data-color="#667eea" style="background: #667eea"></button>
+                                <button type="button" class="color-preset" data-color="#f56565" style="background: #f56565"></button>
+                                <button type="button" class="color-preset" data-color="#48bb78" style="background: #48bb78"></button>
+                                <button type="button" class="color-preset" data-color="#ed8936" style="background: #ed8936"></button>
+                                <button type="button" class="color-preset" data-color="#9f7aea" style="background: #9f7aea"></button>
+                                <button type="button" class="color-preset" data-color="#38b2ac" style="background: #38b2ac"></button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="tagIsActive" name="IsActive" checked>
+                            <label class="form-check-label" for="tagIsActive">
+                                Active (users can select this tag)
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <span id="tagSubmitText">Create Tag</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let isEditMode = false;
+        
+        // Filtering functionality
+        function applyTagFilters() {
+            const statusFilter = document.getElementById('statusFilter').value;
+            const typeFilter = document.getElementById('typeFilter').value;
+            const searchText = document.getElementById('searchTags').value.toLowerCase();
+            
+            document.querySelectorAll('.tag-card').forEach(card => {
+                let show = true;
+                
+                // Status filter
+                if (statusFilter && card.dataset.status !== statusFilter) {
+                    show = false;
+                }
+                
+                // Type filter
+                if (typeFilter && card.dataset.type !== typeFilter) {
+                    show = false;
+                }
+                
+                // Search filter
+                if (searchText && !card.dataset.search.includes(searchText)) {
+                    show = false;
+                }
+                
+                card.style.display = show ? 'block' : 'none';
+            });
+        }
+        
+        function clearTagFilters() {
+            document.getElementById('statusFilter').value = '';
+            document.getElementById('typeFilter').value = '';
+            document.getElementById('searchTags').value = '';
+            applyTagFilters();
+        }
+        
+        // Event listeners for filters
+        document.getElementById('statusFilter').addEventListener('change', applyTagFilters);
+        document.getElementById('typeFilter').addEventListener('change', applyTagFilters);
+        document.getElementById('searchTags').addEventListener('input', applyTagFilters);
+        
+        // Color preset functionality
+        document.querySelectorAll('.color-preset').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.getElementById('tagColor').value = this.dataset.color;
+            });
+        });
+        
+        // Modal functions
+        function showCreateTagModal() {
+            isEditMode = false;
+            document.getElementById('tagModalTitle').textContent = 'Create New Tag';
+            document.getElementById('tagSubmitText').textContent = 'Create Tag';
+            document.getElementById('tagForm').reset();
+            document.getElementById('tagId').value = '0';
+            document.getElementById('tagColor').value = '#667eea';
+            
+            const modal = new bootstrap.Modal(document.getElementById('tagModal'));
+            modal.show();
+        }
+        
+        function editTag(tagId) {
+            // In a real implementation, you'd fetch tag details via AJAX
+            alert('Edit tag functionality will be implemented in a future update.');
+        }
+        
+        function toggleTagStatus(tagId, activate) {
+            const action = activate ? 'activate' : 'deactivate';
+            
+            if (confirm(`Are you sure you want to ${action} this tag?`)) {
+                // Implementation would go here
+                alert(`Tag ${action} functionality will be implemented in a future update.`);
+            }
+        }
+        
+        function deleteTag(tagId) {
+            if (confirm('Are you sure you want to delete this tag? This action cannot be undone.')) {
+                fetch('@Url.Action("DeleteTag", "Admin")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                    },
+                    body: `id=${tagId}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert(data.message || 'Failed to delete tag');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Failed to delete tag');
+                });
+            }
+        }
+        
+        // Form submission
+        document.getElementById('tagForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const action = isEditMode ? 'UpdateTag' : 'CreateTag';
+            
+            fetch(`@Url.Action("", "Admin")/${action}`, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert(data.message || 'Failed to save tag');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to save tag');
+            });
+        });
+    </script>
+}

@@ -1,0 +1,653 @@
+﻿@{
+    ViewData["Title"] = "MoodLog - Daily Mood Tracker";
+    Layout = "_Layout";
+}
+
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container">
+        <div class="row align-items-center min-vh-100">
+            <div class="col-lg-6">
+                <div class="hero-content">
+                    <h1 class="hero-title">
+                        <span class="mood-icon" id="animatedMoodIcon">😊</span>
+                        MoodLog
+                    </h1>
+                    <h2 class="hero-subtitle">Track your emotions, understand your patterns</h2>
+                    <p class="hero-description">
+                        Simple daily mood tracking that helps you identify patterns,
+                        build better habits, and take control of your emotional well-being.
+                    </p>
+
+                    <div class="hero-actions">
+                        <a href="@Url.Action("Register", "Account")" class="btn btn-primary btn-hero">
+                            <i class="fas fa-rocket me-2"></i>Get Started Free
+                        </a>
+                        <a href="@Url.Action("Login", "Account")" class="btn btn-outline-light btn-hero">
+                            <i class="fas fa-sign-in-alt me-2"></i>Sign In
+                        </a>
+                    </div>
+
+                    <div class="hero-stats">
+                        <div class="stat">
+                            <span class="stat-number">30s</span>
+                            <span class="stat-label">Daily logging</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-number">100%</span>
+                            <span class="stat-label">Private & secure</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-number">∞</span>
+                            <span class="stat-label">Insights</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="hero-features">
+                    <div class="feature-showcase">
+                        <!-- Feature 1: Mood Tracking -->
+                        <div class="feature-card feature-primary">
+                            <div class="feature-icon">
+                                <i class="fas fa-heart-pulse"></i>
+                            </div>
+                            <div class="feature-content">
+                                <h4>Track Your Mood</h4>
+                                <p>Log daily emotions with our intuitive 10-point scale</p>
+                            </div>
+                            <div class="feature-visual">
+                                <div class="mood-scale">
+                                    <span class="scale-dot active"></span>
+                                    <span class="scale-dot active"></span>
+                                    <span class="scale-dot active"></span>
+                                    <span class="scale-dot active"></span>
+                                    <span class="scale-dot active"></span>
+                                    <span class="scale-dot active"></span>
+                                    <span class="scale-dot active"></span>
+                                    <span class="scale-dot"></span>
+                                    <span class="scale-dot"></span>
+                                    <span class="scale-dot"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Feature 2: Analytics -->
+                        <div class="feature-card feature-secondary">
+                            <div class="feature-icon">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <div class="feature-content">
+                                <h4>Smart Analytics</h4>
+                                <p>Discover patterns and trends in your emotional journey</p>
+                            </div>
+                            <div class="feature-visual">
+                                <div class="mini-chart">
+                                    <div class="chart-bar" style="height: 60%"></div>
+                                    <div class="chart-bar" style="height: 80%"></div>
+                                    <div class="chart-bar" style="height: 45%"></div>
+                                    <div class="chart-bar" style="height: 90%"></div>
+                                    <div class="chart-bar" style="height: 70%"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Feature 3: Insights -->
+                        <div class="feature-card feature-accent">
+                            <div class="feature-icon">
+                                <i class="fas fa-lightbulb"></i>
+                            </div>
+                            <div class="feature-content">
+                                <h4>Personal Insights</h4>
+                                <p>Get personalized recommendations for better wellness</p>
+                            </div>
+                            <div class="feature-visual">
+                                <div class="insight-indicator">
+                                    <div class="pulse-ring"></div>
+                                    <div class="pulse-ring delay-1"></div>
+                                    <div class="pulse-ring delay-2"></div>
+                                    <span class="insight-icon">💡</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+
+
+<!-- Footer -->
+<footer class="landing-footer">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="footer-brand">
+                    <h5>😊 MoodLog</h5>
+                    <p>Your journey to better emotional wellness starts here.</p>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="footer-links">
+                    <div class="row">
+                        <div class="col-6">
+                            <h6>Product</h6>
+                            <ul>
+                                <li><a href="#features">Features</a></li>
+                                <li><a href="#pricing">Pricing</a></li>
+                                <li><a href="#security">Security</a></li>
+                            </ul>
+                        </div>
+                        <div class="col-6">
+                            <h6>Legal</h6>
+                            <ul>
+                                <li><a href="#privacy">Privacy Policy</a></li>
+                                <li><a href="#terms">Terms of Service</a></li>
+                                <li><a href="#contact">Contact</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <hr class="footer-divider">
+        <div class="row">
+            <div class="col-12 text-center">
+                <p class="footer-credit">
+                    © 2024 MoodLog. Built with ❤️ for better mental health.
+                    <br>
+                    <small>Created as part of a laboratory project for educational purposes.</small>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<style>
+    /* Remove default margins and ensure full height */
+    html, body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+    }
+
+    body {
+        margin-bottom: 0 !important;
+        padding-bottom: 0 !important;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="dots" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="1" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23dots)"/></svg>');
+    }
+
+    /* Hero Section */
+    .hero-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .hero-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="dots" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="1" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23dots)"/></svg>');
+    }
+
+    .hero-content {
+        position: relative;
+        z-index: 2;
+    }
+
+    .hero-title {
+        font-size: 4rem;
+        font-weight: 800;
+        margin-bottom: 1.5rem;
+        line-height: 1.1;
+    }
+
+    .mood-icon {
+        font-size: 4.5rem;
+        display: inline-block;
+        margin-right: 1rem;
+        animation: bounce 1s infinite;
+    }
+
+    .hero-subtitle {
+        font-size: 1.5rem;
+        font-weight: 300;
+        margin-bottom: 1.5rem;
+        opacity: 0.9;
+    }
+
+    .hero-description {
+        font-size: 1.2rem;
+        line-height: 1.6;
+        margin-bottom: 2.5rem;
+        opacity: 0.9;
+    }
+
+    .hero-actions {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 3rem;
+        flex-wrap: wrap;
+    }
+
+    .btn-hero {
+        padding: 1rem 2rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+        border-radius: 50px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+    }
+
+    .btn-hero:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    }
+
+    .btn-outline-light {
+        border-color: rgba(255, 255, 255, 0.5);
+        color: var(--text-on-primary, white);
+    }
+
+    .btn-outline-light:hover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: white;
+        color: var(--text-on-primary, white);
+    }
+
+    .hero-stats {
+        display: flex;
+        gap: 2rem;
+        flex-wrap: wrap;
+    }
+
+    .stat {
+        text-align: center;
+    }
+
+    .stat-number {
+        display: block;
+        font-size: 2rem;
+        font-weight: 800;
+        color: #ffd700;
+    }
+
+    .stat-label {
+        font-size: 0.9rem;
+        opacity: 0.8;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    /* Hero Features */
+    .hero-features {
+        position: relative;
+        z-index: 3;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        min-height: 400px;
+    }
+
+    .feature-showcase {
+        width: 100%;
+        max-width: 400px;
+        margin: 0 auto;
+    }
+
+    .feature-card {
+        background: rgba(255, 255, 255, 0.25);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 20px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        min-height: 80px;
+        z-index: 1;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    }
+
+    .feature-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+        transition: left 0.8s ease;
+    }
+
+    .feature-card:hover::before {
+        left: 100%;
+    }
+
+    .feature-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+        border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    .feature-icon {
+        width: 50px;
+        height: 50px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: var(--text-on-primary, white);
+        flex-shrink: 0;
+    }
+
+    .feature-content {
+        flex: 1;
+    }
+
+    .feature-content h4 {
+        margin: 0 0 0.5rem 0;
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--text-on-primary, white);
+    }
+
+    .feature-content p {
+        margin: 0;
+        font-size: 0.9rem;
+        color: rgba(255, 255, 255, 0.8);
+        line-height: 1.4;
+    }
+
+    .feature-visual {
+        flex-shrink: 0;
+    }
+
+    /* Mood Scale Visual */
+    .mood-scale {
+        display: flex;
+        gap: 3px;
+        align-items: center;
+    }
+
+    .scale-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.3);
+        transition: all 0.3s ease;
+    }
+
+    .scale-dot.active {
+        background: #7B61FF;
+        box-shadow: 0 0 10px rgba(123, 97, 255, 0.5);
+    }
+
+    /* Mini Chart Visual */
+    .mini-chart {
+        display: flex;
+        align-items: end;
+        gap: 3px;
+        height: 30px;
+        width: 50px;
+    }
+
+    .chart-bar {
+        flex: 1;
+        background: linear-gradient(to top, #7B61FF, #B8A1FF);
+        border-radius: 2px;
+        min-height: 8px;
+        animation: chartGrow 2s ease-out infinite alternate;
+    }
+
+    .chart-bar:nth-child(2) { animation-delay: 0.2s; }
+    .chart-bar:nth-child(3) { animation-delay: 0.4s; }
+    .chart-bar:nth-child(4) { animation-delay: 0.6s; }
+    .chart-bar:nth-child(5) { animation-delay: 0.8s; }
+
+    /* Insight Indicator */
+    .insight-indicator {
+        position: relative;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .pulse-ring {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        animation: pulse 2s ease-out infinite;
+    }
+
+    .pulse-ring.delay-1 {
+        animation-delay: 0.5s;
+    }
+
+    .pulse-ring.delay-2 {
+        animation-delay: 1s;
+    }
+
+    .insight-icon {
+        font-size: 1.2rem;
+        z-index: 2;
+    }
+
+    /* Animations */
+    @@keyframes chartGrow {
+        0% { transform: scaleY(0.7); }
+        100% { transform: scaleY(1); }
+    }
+
+    @@keyframes pulse {
+        0% {
+            transform: scale(0.8);
+            opacity: 1;
+        }
+        100% {
+            transform: scale(1.5);
+            opacity: 0;
+        }
+    }
+
+
+
+
+
+
+    /* Footer */
+    .landing-footer {
+        background: #1a202c !important;
+        color: var(--text-on-primary, white);
+        padding: 3rem 0 1rem;
+        margin: 0;
+        margin-bottom: 0 !important;
+        position: relative;
+        z-index: 10;
+    }
+
+    .footer-brand h5 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+    }
+
+    .footer-brand p {
+        color: #a0aec0;
+        margin-bottom: 0;
+    }
+
+    .footer-links h6 {
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: var(--text-on-primary, white);
+    }
+
+    .footer-links ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .footer-links li {
+        margin-bottom: 0.5rem;
+    }
+
+    .footer-links a {
+        color: #a0aec0;
+        text-decoration: none;
+        transition: color 0.3s ease;
+    }
+
+    .footer-links a:hover {
+        color: var(--text-on-primary, white);
+    }
+
+    .footer-divider {
+        border-color: #2d3748;
+        margin: 2rem 0 1rem;
+    }
+
+    .footer-credit {
+        color: #a0aec0;
+        margin: 0;
+    }
+
+    .footer-credit small {
+        opacity: 0.7;
+    }
+
+    /* Animations */
+    @@keyframes bounce {
+        0%, 20%, 50%, 80%, 100% {
+            transform: translateY(0);
+        }
+        40% {
+            transform: translateY(-10px);
+        }
+        60% {
+            transform: translateY(-5px);
+        }
+    }
+
+    /* Responsive Design */
+    @@media (max-width: 768px) {
+        .hero-title {
+            font-size: 2.5rem;
+        }
+
+        .mood-icon {
+            font-size: 3rem;
+        }
+
+        .hero-subtitle {
+            font-size: 1.2rem;
+        }
+
+        .hero-description {
+            font-size: 1rem;
+        }
+
+        .hero-actions {
+            flex-direction: column;
+        }
+
+        .btn-hero {
+            width: 100%;
+            text-align: center;
+        }
+
+        .hero-stats {
+            justify-content: center;
+        }
+
+        .section-title {
+            font-size: 2rem;
+        }
+
+        .feature-card {
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .feature-content h4 {
+            font-size: 1rem;
+        }
+
+        .feature-content p {
+            font-size: 0.85rem;
+        }
+
+        .feature-icon {
+            width: 40px;
+            height: 40px;
+            font-size: 1.2rem;
+        }
+
+        .mini-chart {
+            height: 25px;
+            width: 40px;
+        }
+
+        .insight-indicator {
+            width: 35px;
+            height: 35px;
+        }
+    }
+</style>
+
+<script>
+    // Animated mood icon
+    document.addEventListener('DOMContentLoaded', function() {
+        const moodIcon = document.getElementById('animatedMoodIcon');
+        const moodEmojis = [
+            '😀', '😃', '😄', '😁', '😆', '😅', '🤣', '😂', '🙂', '🙃',
+            '🫠', '😉', '😊', '😇', '🥰', '😍', '🤩', '😘', '😗', '☺️',
+            '😚', '😙', '🥲', '😋', '😛', '😜', '🤪', '😝', '🤑', '🤗',
+            '🤭', '🫢', '🫣', '🤫', '🤔', '🫡', '🤐', '🤨', '😐', '😑',
+            '😶', '🫥', '😶‍🌫️', '😏', '😒', '🙄', '😬', '😮‍💨', '🤥', '🫨',
+            '😌', '😔', '😪', '🤤', '😴', '😷', '🤒', '🤕', '🤢', '🤮',
+            '🤧', '🥵', '🥶', '🥴', '😵', '😵‍💫', '🤯', '🤠', '🥳', '🥸',
+            '😎', '🤓', '🧐', '😕', '🫤', '😟', '🙁', '☹️', '😮', '😯',
+            '😲', '😳', '🥺', '🥹', '😦', '😧', '😨', '😰', '😥', '😢',
+            '😭', '😱', '😖', '😣', '😞', '😓', '😩', '😫', '🥱', '😤',
+            '😡', '😠'
+        ];
+
+        function changeEmoji() {
+            const randomEmoji = moodEmojis[Math.floor(Math.random() * moodEmojis.length)];
+            moodIcon.textContent = randomEmoji;
+        }
+
+        // Perfect synchronization: Both bounce and emoji change every 1 second
+        // Each new emoji appears exactly when the bounce cycle restarts
+        setInterval(changeEmoji, 1000);
+    });
+
+
+</script>

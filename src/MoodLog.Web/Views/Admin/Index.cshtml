@@ -1,0 +1,315 @@
+@model MoodLog.Web.Models.AdminDashboardViewModel
+@{
+    ViewData["Title"] = "Admin Dashboard";
+    Layout = "_AdminLayout";
+}
+
+<div class="admin-dashboard">
+    <!-- Stats Overview -->
+    <div class="stats-overview">
+        <div class="stat-card users">
+            <div class="stat-icon">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-number">@Model.TotalUsers</div>
+                <div class="stat-label">Total Users</div>
+                <div class="stat-change positive">
+                    <i class="fas fa-arrow-up"></i>
+                    +@Model.ActiveUsers active
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-card entries">
+            <div class="stat-icon">
+                <i class="fas fa-journal-whills"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-number">@Model.TotalEntries</div>
+                <div class="stat-label">Total Entries</div>
+                <div class="stat-change positive">
+                    <i class="fas fa-arrow-up"></i>
+                    +@Model.EntriesThisMonth this month
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-card mood">
+            <div class="stat-icon">
+                <i class="fas fa-smile"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-number">@Model.AverageMood.ToString("F1")</div>
+                <div class="stat-label">Average Mood</div>
+                <div class="stat-change neutral">
+                    <i class="fas fa-minus"></i>
+                    Overall wellness
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-card tags">
+            <div class="stat-icon">
+                <i class="fas fa-tags"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-number">@Model.TotalTags</div>
+                <div class="stat-label">Active Tags</div>
+                <div class="stat-change neutral">
+                    <i class="fas fa-cog"></i>
+                    System managed
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="charts-section">
+        <div class="row g-4">
+            <!-- User Growth Chart -->
+            <div class="col-lg-8">
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3>User Growth</h3>
+                        <div class="chart-period">Last 12 months</div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="userGrowthChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mood Distribution -->
+            <div class="col-lg-4">
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3>Mood Distribution</h3>
+                        <div class="chart-period">All time</div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="moodDistributionChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="activity-section">
+        <div class="activity-card">
+            <div class="activity-header">
+                <h3>Recent Activity</h3>
+                <a href="@Url.Action("Users")" class="btn btn-outline-primary btn-sm">
+                    <i class="fas fa-users me-1"></i>Manage Users
+                </a>
+            </div>
+            
+            <div class="activity-list">
+                @if (Model.RecentEntries.Any())
+                {
+                    @foreach (var entry in Model.RecentEntries.Take(8))
+                    {
+                        <div class="activity-item">
+                            <div class="activity-avatar">
+                                @GetMoodEmoji(entry.MoodLevel)
+                            </div>
+                            <div class="activity-content">
+                                <div class="activity-text">
+                                    <strong>User</strong> logged a <span class="mood-level">@GetMoodText(entry.MoodLevel)</span> mood
+                                </div>
+                                <div class="activity-time">@entry.EntryDate.ToString("MMM dd, yyyy 'at' h:mm tt")</div>
+                            </div>
+                            <div class="activity-mood">
+                                <span class="mood-badge mood-@entry.MoodLevel">@entry.MoodLevel/5</span>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="empty-activity">
+                        <i class="fas fa-inbox"></i>
+                        <p>No recent activity</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+        <div class="action-card">
+            <div class="action-icon">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="action-content">
+                <h4>Manage Users</h4>
+                <p>View and manage user accounts, roles, and permissions</p>
+                <a href="@Url.Action("Users")" class="btn btn-primary">
+                    <i class="fas fa-arrow-right me-1"></i>Go to Users
+                </a>
+            </div>
+        </div>
+
+        <div class="action-card">
+            <div class="action-icon">
+                <i class="fas fa-tags"></i>
+            </div>
+            <div class="action-content">
+                <h4>Manage Tags</h4>
+                <p>Create, edit, and organize mood tags and categories</p>
+                <a href="@Url.Action("Tags")" class="btn btn-primary">
+                    <i class="fas fa-arrow-right me-1"></i>Go to Tags
+                </a>
+            </div>
+        </div>
+
+        <div class="action-card">
+            <div class="action-icon">
+                <i class="fas fa-download"></i>
+            </div>
+            <div class="action-content">
+                <h4>Export Data</h4>
+                <p>Download system reports and analytics data</p>
+                <button class="btn btn-primary" onclick="exportSystemData()">
+                    <i class="fas fa-download me-1"></i>Export Report
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@functions {
+    private string GetMoodEmoji(int moodLevel)
+    {
+        return moodLevel switch
+        {
+            1 => "😢",
+            2 => "😔", 
+            3 => "😐",
+            4 => "😊",
+            5 => "😄",
+            _ => "😐"
+        };
+    }
+    
+    private string GetMoodText(int moodLevel)
+    {
+        return moodLevel switch
+        {
+            1 => "Very Bad",
+            2 => "Bad",
+            3 => "Okay", 
+            4 => "Good",
+            5 => "Great",
+            _ => "Unknown"
+        };
+    }
+}
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // User Growth Chart
+        const userGrowthCtx = document.getElementById('userGrowthChart').getContext('2d');
+        const userGrowthData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.UserGrowthData));
+        
+        new Chart(userGrowthCtx, {
+            type: 'line',
+            data: {
+                labels: userGrowthData.map(d => d.month),
+                datasets: [{
+                    label: 'Users',
+                    data: userGrowthData.map(d => d.userCount),
+                    borderColor: '#667eea',
+                    backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#667eea',
+                    pointBorderColor: getComputedStyle(document.documentElement).getPropertyValue('--text-on-primary') || '#fff',
+                    pointBorderWidth: 2,
+                    pointRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0,0,0,0.1)'
+                        }
+                    }
+                }
+            }
+        });
+
+        // Mood Distribution Chart
+        const moodDistCtx = document.getElementById('moodDistributionChart').getContext('2d');
+        const moodDistData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.MoodDistribution));
+        
+        const moodLabels = {1: 'Very Bad', 2: 'Bad', 3: 'Okay', 4: 'Good', 5: 'Great'};
+        const moodColors = {1: '#ef4444', 2: '#f97316', 3: '#eab308', 4: '#22c55e', 5: '#10b981'};
+        
+        new Chart(moodDistCtx, {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(moodDistData).map(k => moodLabels[k] || k),
+                datasets: [{
+                    data: Object.values(moodDistData),
+                    backgroundColor: Object.keys(moodDistData).map(k => moodColors[k] || '#6b7280'),
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 20,
+                            usePointStyle: true
+                        }
+                    }
+                },
+                cutout: '60%'
+            }
+        });
+
+        function exportSystemData() {
+            // Create a simple CSV export of system stats
+            const data = [
+                ['Metric', 'Value'],
+                ['Total Users', '@Model.TotalUsers'],
+                ['Active Users', '@Model.ActiveUsers'],
+                ['Total Entries', '@Model.TotalEntries'],
+                ['Entries This Month', '@Model.EntriesThisMonth'],
+                ['Average Mood', '@Model.AverageMood.ToString("F2")'],
+                ['Total Tags', '@Model.TotalTags']
+            ];
+
+            const csvContent = data.map(row => row.join(',')).join('\n');
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'moodlog-system-report.csv';
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+    </script>
+}
