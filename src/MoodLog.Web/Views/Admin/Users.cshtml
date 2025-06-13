@@ -321,12 +321,12 @@
                     if (data.success) {
                         location.reload(); // Refresh the page to show updated status
                     } else {
-                        alert(data.message || 'Failed to update user status');
+                        showMessage(data.message || 'Failed to update user status', '#ef4444', 3000);
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    alert('Failed to update user status');
+                    showMessage('Failed to update user status', '#ef4444', 3000);
                 });
             }
         }
@@ -336,5 +336,69 @@
                 alert('Password reset functionality will be implemented in a future update.');
             }
         }
+
+        function showMessage(text, backgroundColor = '#667eea', duration = 2000) {
+            // Remove any existing messages
+            const existingMessages = document.querySelectorAll('.admin-message');
+            existingMessages.forEach(msg => msg.remove());
+
+            const message = document.createElement('div');
+            message.className = 'admin-message';
+            message.textContent = text;
+            message.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${backgroundColor};
+                color: white;
+                padding: 12px 20px;
+                border-radius: 8px;
+                z-index: 1000;
+                font-size: 14px;
+                font-weight: 500;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                animation: slideInRight 0.3s ease;
+                max-width: 300px;
+                line-height: 1.4;
+            `;
+
+            document.body.appendChild(message);
+
+            setTimeout(() => {
+                message.style.animation = 'slideOutRight 0.3s ease';
+                setTimeout(() => {
+                    if (document.body.contains(message)) {
+                        document.body.removeChild(message);
+                    }
+                }, 300);
+            }, duration);
+        }
+
+        // Add CSS animations for notifications
+        const style = document.createElement('style');
+        style.textContent = `
+            @@keyframes slideInRight {
+                from {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+
+            @@keyframes slideOutRight {
+                from {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+                to {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
     </script>
 }

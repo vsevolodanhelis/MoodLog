@@ -6,13 +6,13 @@
 
 <!-- Back to Home Link -->
 <div class="text-center mb-3">
-    <a href="@Url.Action("Index", "Home")" class="text-link-dark">
-        <i class="fas fa-arrow-left me-1"></i>Back to Home
+    <a href="@Url.Action("Index", "Home")" class="back-link">
+        <i class="fas fa-arrow-left"></i>Back to Home
     </a>
 </div>
 
-<h2 class="text-center mb-4 text-primary-dark">Join MoodLog</h2>
-<p class="text-center text-secondary-dark mb-4">Start your journey to better emotional wellness</p>
+<h2 class="text-center mb-4" style="color: var(--text-primary); font-weight: var(--font-weight-bold);">Join MoodLog</h2>
+<p class="text-center mb-4" style="color: var(--text-secondary);">Start your journey to better emotional wellness</p>
 
 <form asp-action="Register" asp-route-returnurl="@ViewData["ReturnUrl"]" method="post">
     <div asp-validation-summary="ModelOnly" class="validation-summary-errors"></div>
@@ -53,14 +53,15 @@
         <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
     </div>
 
-    <button type="submit" class="btn btn-primary btn-auth">
-        <i class="fas fa-user-plus me-2"></i>CREATE ACCOUNT
+    <button type="submit" class="btn-auth">
+        <i class="fas fa-user-plus"></i>
+        <span>CREATE ACCOUNT</span>
     </button>
 
     <div class="auth-links">
-        <p class="mb-2 text-secondary-dark">Already have an account?</p>
-        <a asp-action="Login" asp-route-returnurl="@ViewData["ReturnUrl"]" class="text-link-dark">
-            <i class="fas fa-sign-in-alt me-1"></i>Sign In
+        <p class="mb-2">Already have an account?</p>
+        <a asp-action="Login" asp-route-returnurl="@ViewData["ReturnUrl"]">
+            <i class="fas fa-sign-in-alt"></i>Sign In
         </a>
     </div>
 </form>

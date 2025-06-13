@@ -26,7 +26,7 @@ A comprehensive mental wellness platform built with ASP.NET Core, featuring AI-p
 ## 🚀 Getting Started
 
 ### Prerequisites
-- .NET 8.0 SDK
+- .NET 9.0 SDK
 - Visual Studio 2022 or VS Code
 - SQLite (included)
 

@@ -76,6 +76,12 @@ public class SettingsViewModel
     public bool EmailNotifications { get; set; }
 }
 
+public class UpdateProfileRequest
+{
+    public string Email { get; set; } = string.Empty;
+    public string Username { get; set; } = string.Empty;
+}
+
 public class AdminDashboardViewModel
 {
     public int TotalUsers { get; set; }

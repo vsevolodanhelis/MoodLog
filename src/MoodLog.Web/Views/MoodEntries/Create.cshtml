@@ -3,7 +3,7 @@
     Layout = "_DashboardLayout";
 }
 
-<div class="mood-entry-container">
+<div class="mood-entry-container centered-content">
     <div class="mood-entry-card">
         <div class="entry-header">
             <h2>How are you feeling?</h2>
@@ -267,7 +267,7 @@
             e.preventDefault();
 
             if (selectedMood === 0) {
-                alert('Please select a mood first');
+                showMessage('Please select a mood first', '#ef4444', 3000);
                 return;
             }
 
@@ -287,12 +287,12 @@
                 if (data.success) {
                     showSuccessModal();
                 } else {
-                    alert(data.message || 'Failed to save mood entry');
+                    showMessage(data.message || 'Failed to save mood entry', '#ef4444', 3000);
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('Failed to save mood entry');
+                showMessage('Failed to save mood entry', '#ef4444', 3000);
             });
         });
 
@@ -319,7 +319,225 @@
             renderTags();
         }
 
+        function showMessage(text, backgroundColor = '#667eea', duration = 2000) {
+            // Remove any existing messages
+            const existingMessages = document.querySelectorAll('.create-message');
+            existingMessages.forEach(msg => msg.remove());
+
+            const message = document.createElement('div');
+            message.className = 'create-message';
+            message.textContent = text;
+            message.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${backgroundColor};
+                color: white;
+                padding: 12px 20px;
+                border-radius: 8px;
+                z-index: 1000;
+                font-size: 14px;
+                font-weight: 500;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                animation: slideInRight 0.3s ease;
+                max-width: 300px;
+                line-height: 1.4;
+            `;
+
+            document.body.appendChild(message);
+
+            setTimeout(() => {
+                message.style.animation = 'slideOutRight 0.3s ease';
+                setTimeout(() => {
+                    if (document.body.contains(message)) {
+                        document.body.removeChild(message);
+                    }
+                }, 300);
+            }, duration);
+        }
+
+        // Auto-save functionality
+        let autoSaveTimer;
+        let hasUnsavedChanges = false;
+
+        function autoSave() {
+            if (!hasUnsavedChanges) return;
+
+            const formData = {
+                moodLevel: selectedMood,
+                notes: document.getElementById('moodNotes').value,
+                tags: selectedTags,
+                timestamp: new Date().toISOString()
+            };
+
+            localStorage.setItem('moodlog-autosave', JSON.stringify(formData));
+            showMessage('Draft saved automatically', '#10b981', 1500);
+            hasUnsavedChanges = false;
+        }
+
+        function markAsChanged() {
+            hasUnsavedChanges = true;
+            clearTimeout(autoSaveTimer);
+            autoSaveTimer = setTimeout(autoSave, 3000); // Auto-save after 3 seconds of inactivity
+        }
+
+        function loadAutoSave() {
+            const saved = localStorage.getItem('moodlog-autosave');
+            if (saved) {
+                try {
+                    const data = JSON.parse(saved);
+                    const savedTime = new Date(data.timestamp);
+                    const now = new Date();
+                    const hoursDiff = (now - savedTime) / (1000 * 60 * 60);
+
+                    if (hoursDiff < 24) { // Only restore if less than 24 hours old
+                        if (confirm('Found a saved draft from ' + savedTime.toLocaleString() + '. Would you like to restore it?')) {
+                            selectedMood = data.moodLevel;
+                            document.getElementById('moodNotes').value = data.notes || '';
+                            selectedTags = data.tags || [];
+
+                            // Update UI
+                            updateSliderColor();
+                            renderTags();
+                            document.querySelectorAll('.mood-option').forEach(opt => {
+                                opt.classList.toggle('selected', parseInt(opt.dataset.mood) === selectedMood);
+                            });
+                        }
+                    }
+                } catch (e) {
+                    console.error('Error loading auto-save:', e);
+                }
+            }
+        }
+
+        function clearAutoSave() {
+            localStorage.removeItem('moodlog-autosave');
+        }
+
+        // Add event listeners for auto-save
+        document.getElementById('moodNotes').addEventListener('input', markAsChanged);
+        document.querySelectorAll('.mood-option').forEach(opt => {
+            opt.addEventListener('click', markAsChanged);
+        });
+
+        // Enhanced keyboard shortcuts for Create form
+        document.addEventListener('keydown', function(e) {
+            // Ctrl+S for save
+            if (e.ctrlKey && e.key === 's') {
+                e.preventDefault();
+                const saveBtn = document.querySelector('.btn-save');
+                if (saveBtn && !saveBtn.disabled) {
+                    saveBtn.click();
+                }
+                return;
+            }
+
+            // Enter to submit form (when not in textarea)
+            if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
+                const form = document.querySelector('form');
+                const saveBtn = document.querySelector('.btn-save');
+
+                if (form && saveBtn && !saveBtn.disabled) {
+                    // Check if required fields are filled
+                    const moodLevel = document.querySelector('input[name="MoodLevel"]:checked');
+                    if (moodLevel) {
+                        e.preventDefault();
+                        saveBtn.click();
+                    }
+                }
+                return;
+            }
+
+            // Escape to cancel/go back
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                const cancelBtn = document.querySelector('.btn-secondary');
+                if (cancelBtn) {
+                    cancelBtn.click();
+                } else {
+                    // Fallback: go back to dashboard
+                    window.location.href = '@Url.Action("Index", "Dashboard")';
+                }
+                return;
+            }
+
+            // Number keys for quick mood selection (1-10)
+            if (e.key >= '1' && e.key <= '9' && !['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) {
+                const moodLevel = parseInt(e.key);
+                const moodRadio = document.querySelector(`input[name="MoodLevel"][value="${moodLevel}"]`);
+                if (moodRadio) {
+                    e.preventDefault();
+                    moodRadio.checked = true;
+                    moodRadio.dispatchEvent(new Event('change'));
+
+                    // Visual feedback
+                    const label = moodRadio.closest('label') || document.querySelector(`label[for="${moodRadio.id}"]`);
+                    if (label) {
+                        label.style.transform = 'scale(1.1)';
+                        setTimeout(() => {
+                            label.style.transform = '';
+                        }, 200);
+                    }
+                }
+                return;
+            }
+
+            // 0 key for mood level 10
+            if (e.key === '0' && !['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) {
+                const moodRadio = document.querySelector('input[name="MoodLevel"][value="10"]');
+                if (moodRadio) {
+                    e.preventDefault();
+                    moodRadio.checked = true;
+                    moodRadio.dispatchEvent(new Event('change'));
+
+                    // Visual feedback
+                    const label = moodRadio.closest('label') || document.querySelector(`label[for="${moodRadio.id}"]`);
+                    if (label) {
+                        label.style.transform = 'scale(1.1)';
+                        setTimeout(() => {
+                            label.style.transform = '';
+                        }, 200);
+                    }
+                }
+                return;
+            }
+        });
+
+        // Clear auto-save on successful submission
+        const originalSubmitHandler = document.getElementById('moodForm').onsubmit;
+        document.getElementById('moodForm').addEventListener('submit', function(e) {
+            clearAutoSave();
+        });
+
         // Initialize
         updateSliderColor();
+        loadAutoSave();
+
+        // Add CSS animations for notifications
+        const style = document.createElement('style');
+        style.textContent = `
+            @@keyframes slideInRight {
+                from {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+
+            @@keyframes slideOutRight {
+                from {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+                to {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
     </script>
 }

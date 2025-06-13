@@ -126,7 +126,7 @@ public class MoodEntriesController : Controller
 
             return Json(new { success = true, message = "Mood logged successfully!" });
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             return Json(new { success = false, message = "Failed to log mood. Please try again." });
         }
@@ -262,9 +262,22 @@ public class MoodEntriesController : Controller
         var user = await _userManager.GetUserAsync(User);
         if (user == null) return null;
 
-        // Use a hash of the user ID to create a consistent integer ID
-        // This ensures we have a stable user ID for our mood entries
-        return Math.Abs(user.Id.GetHashCode());
+        // Create a consistent integer ID from the string GUID
+        return GetConsistentIntegerFromGuid(user.Id);
+    }
+
+    private static int GetConsistentIntegerFromGuid(string guidString)
+    {
+        // Parse the GUID and use a consistent method to convert to integer
+        if (Guid.TryParse(guidString, out var guid))
+        {
+            // Use the first 4 bytes of the GUID to create a consistent integer
+            var bytes = guid.ToByteArray();
+            return Math.Abs(BitConverter.ToInt32(bytes, 0));
+        }
+
+        // Fallback to a consistent hash if not a valid GUID
+        return Math.Abs(guidString.GetHashCode(StringComparison.Ordinal));
     }
 
     private static MoodEntryViewModel MapToViewModel(MoodEntryDto dto)

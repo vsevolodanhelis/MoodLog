@@ -4,7 +4,7 @@
     Layout = "_DashboardLayout";
 }
 
-<div class="settings-content">
+<div class="settings-content centered-content">
     <!-- Profile Settings -->
     <div class="settings-section">
         <div class="settings-card">
@@ -13,17 +13,29 @@
                 <p>Manage your account details and preferences</p>
             </div>
 
-            <form class="settings-form">
+            <form class="settings-form" id="profileForm">
+                @Html.AntiForgeryToken()
                 <div class="form-group">
                     <label for="email" class="form-label">Email Address</label>
-                    <input type="email" id="email" class="form-control" value="@Model.Email" readonly>
-                    <small class="form-text">Email cannot be changed at this time</small>
+                    <input type="email" id="email" name="email" class="form-control" value="@Model.Email" required>
+                    <small class="form-text text-muted">Your email address is used for login and notifications</small>
+                    <div class="invalid-feedback" id="emailError"></div>
                 </div>
 
                 <div class="form-group">
                     <label for="username" class="form-label">Username</label>
-                    <input type="text" id="username" class="form-control" value="@Model.UserName" readonly>
-                    <small class="form-text">Username cannot be changed at this time</small>
+                    <input type="text" id="username" name="username" class="form-control" value="@Model.UserName" required>
+                    <small class="form-text text-muted">Your username is displayed in the application</small>
+                    <div class="invalid-feedback" id="usernameError"></div>
+                </div>
+
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary" id="saveProfileBtn">
+                        <i class="fas fa-save me-2"></i>Save Changes
+                    </button>
+                    <button type="button" class="btn btn-secondary ms-2" id="cancelProfileBtn">
+                        <i class="fas fa-times me-2"></i>Cancel
+                    </button>
                 </div>
             </form>
         </div>
@@ -386,7 +398,7 @@
                         <p>Update your account password for better security</p>
                     </div>
                     <div class="setting-control">
-                        <button class="btn btn-outline-secondary" onclick="alert('Password change functionality coming soon!')">
+                        <button class="btn btn-outline-secondary" onclick="showComingSoonMessage('Password change functionality coming in a future update.')">
                             <i class="fas fa-key me-2"></i>Change Password
                         </button>
                     </div>
@@ -398,8 +410,20 @@
                         <p>Add an extra layer of security to your account</p>
                     </div>
                     <div class="setting-control">
-                        <button class="btn btn-outline-primary" onclick="alert('Two-factor authentication coming soon!')">
+                        <button class="btn btn-outline-primary" onclick="showComingSoonMessage('Two-factor authentication coming in a future update.')">
                             <i class="fas fa-mobile-alt me-2"></i>Enable 2FA
+                        </button>
+                    </div>
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <h4>Admin Access</h4>
+                        <p>Assign admin privileges to your account (Development Feature)</p>
+                    </div>
+                    <div class="setting-control">
+                        <button class="btn btn-outline-warning" onclick="assignAdminRole()">
+                            <i class="fas fa-shield-alt me-2"></i>Make Admin
                         </button>
                     </div>
                 </div>
@@ -434,9 +458,6 @@
 
 <style>
 /* Settings Page Styles with New Text Color System */
-.settings-content {
-    max-width: 800px;
-}
 
 .settings-section {
     margin-bottom: 2rem;
@@ -776,6 +797,47 @@
         border-width: 2px;
     }
 }
+
+/* Profile Form Validation Styles */
+.form-control.is-invalid {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+
+.invalid-feedback {
+    display: none;
+    width: 100%;
+    margin-top: 0.25rem;
+    font-size: 0.875rem;
+    color: #dc3545;
+}
+
+.invalid-feedback.show {
+    display: block;
+}
+
+.form-group .btn {
+    margin-top: 1rem;
+}
+
+/* btn-primary styling is now handled globally in _DashboardLayout.cshtml */
+
+.btn-secondary {
+    background: var(--glass-bg);
+    border-color: var(--glass-border);
+    color: var(--text-primary);
+    font-weight: 600;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--border-radius);
+    transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.8);
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+    transform: translateY(-1px);
+}
 </style>
 
 @section Scripts {
@@ -787,6 +849,9 @@
 
             // Initialize form controls
             initializeFormControls();
+
+            // Initialize profile form
+            initializeProfileForm();
 
             // Load saved settings
             loadSavedSettings();
@@ -860,6 +925,16 @@
             // Apply reduced motion setting
             const reducedMotion = localStorage.getItem('moodlog-setting-reducedMotion') === 'true';
             applyReducedMotion(reducedMotion);
+
+            // Apply language setting
+            const language = localStorage.getItem('moodlog-language') || 'en';
+            document.documentElement.lang = language;
+
+            // Apply timezone and date format (stored for future use)
+            const timeZone = localStorage.getItem('moodlog-timezone');
+            const dateFormat = localStorage.getItem('moodlog-dateformat');
+            if (timeZone) console.log('Loaded timezone:', timeZone);
+            if (dateFormat) console.log('Loaded date format:', dateFormat);
         }
 
         function handleSettingChange(settingId, value) {
@@ -908,9 +983,13 @@
                     showComingSoonMessage('Data management features will be available when cloud integration is complete.');
                     break;
                 case 'language':
+                    applyLanguageSetting(value);
+                    break;
                 case 'timeZone':
+                    applyTimeZoneSetting(value);
+                    break;
                 case 'dateFormat':
-                    showComingSoonMessage('Localization features are coming in a future update.');
+                    applyDateFormatSetting(value);
                     break;
                 default:
                     showSettingsSavedMessage();
@@ -1040,11 +1119,72 @@
             showSettingsSavedMessage();
         }
 
+        function applyLanguageSetting(language) {
+            // Store language preference
+            localStorage.setItem('moodlog-language', language);
+
+            // Update page language attribute
+            document.documentElement.lang = language;
+
+            // Show notification with language-specific message
+            const messages = {
+                'en': 'Language preference saved',
+                'es': 'Preferencia de idioma guardada',
+                'fr': 'Préférence de langue sauvegardée',
+                'de': 'Spracheinstellung gespeichert',
+                'it': 'Preferenza lingua salvata'
+            };
+
+            showMessage(messages[language] || messages['en'], 'var(--primary)');
+        }
+
+        function applyTimeZoneSetting(timeZone) {
+            // Store timezone preference
+            localStorage.setItem('moodlog-timezone', timeZone);
+
+            // Update any displayed times (if applicable)
+            updateDisplayedTimes(timeZone);
+
+            showSettingsSavedMessage();
+        }
+
+        function applyDateFormatSetting(format) {
+            // Store date format preference
+            localStorage.setItem('moodlog-dateformat', format);
+
+            // Update any displayed dates (if applicable)
+            updateDisplayedDates(format);
+
+            showSettingsSavedMessage();
+        }
+
+
+
         function confirmDeleteAccount() {
             if (confirm('Are you sure you want to delete your account? This action cannot be undone and will permanently delete all your mood data.')) {
                 if (confirm('This is your final warning. Are you absolutely sure you want to delete your account?')) {
                     showComingSoonMessage('Account deletion functionality will be implemented in a future update.');
                 }
+            }
+        }
+
+        async function assignAdminRole() {
+            try {
+                const response = await fetch('/Account/MakeAdmin');
+                const result = await response.json();
+
+                if (result.success) {
+                    showCustomNotification(result.message, 'success');
+                    if (result.reload) {
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 2000);
+                    }
+                } else {
+                    showCustomNotification(result.message, 'error');
+                }
+            } catch (error) {
+                showCustomNotification('Error assigning admin role: ' + error.message, 'error');
             }
         }
 
@@ -1074,5 +1214,184 @@
             }
         `;
         document.head.appendChild(style);
+
+        // Profile Form Management
+        function initializeProfileForm() {
+            const profileForm = document.getElementById('profileForm');
+            const saveBtn = document.getElementById('saveProfileBtn');
+            const cancelBtn = document.getElementById('cancelProfileBtn');
+            const emailInput = document.getElementById('email');
+            const usernameInput = document.getElementById('username');
+
+            // Store original values
+            let originalEmail = emailInput.value;
+            let originalUsername = usernameInput.value;
+
+            // Handle form submission
+            profileForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+
+                const formData = {
+                    email: emailInput.value.trim(),
+                    username: usernameInput.value.trim()
+                };
+
+                // Basic validation
+                if (!validateProfileForm(formData)) {
+                    return;
+                }
+
+                // Show loading state
+                saveBtn.disabled = true;
+                saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Saving...';
+
+                try {
+                    const response = await fetch('@Url.Action("UpdateProfile", "Dashboard")', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                        },
+                        body: JSON.stringify(formData)
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        showNotification('Profile updated successfully!', 'success');
+                        // Update stored original values
+                        originalEmail = formData.email;
+                        originalUsername = formData.username;
+                    } else {
+                        showNotification(result.message || 'Failed to update profile', 'error');
+                        displayValidationErrors(result.errors);
+                    }
+                } catch (error) {
+                    console.error('Profile update error:', error);
+                    showNotification('An error occurred while updating your profile', 'error');
+                } finally {
+                    // Reset button state
+                    saveBtn.disabled = false;
+                    saveBtn.innerHTML = '<i class="fas fa-save me-2"></i>Save Changes';
+                }
+            });
+
+            // Handle cancel button
+            cancelBtn.addEventListener('click', function() {
+                emailInput.value = originalEmail;
+                usernameInput.value = originalUsername;
+                clearValidationErrors();
+                showNotification('Changes cancelled', 'info');
+            });
+
+            // Real-time validation
+            emailInput.addEventListener('blur', function() {
+                validateEmail(this.value.trim());
+            });
+
+            usernameInput.addEventListener('blur', function() {
+                validateUsername(this.value.trim());
+            });
+        }
+
+        function validateProfileForm(data) {
+            let isValid = true;
+            clearValidationErrors();
+
+            if (!validateEmail(data.email)) {
+                isValid = false;
+            }
+
+            if (!validateUsername(data.username)) {
+                isValid = false;
+            }
+
+            return isValid;
+        }
+
+        function validateEmail(email) {
+            const emailError = document.getElementById('emailError');
+            const emailInput = document.getElementById('email');
+
+            if (!email) {
+                showFieldError(emailInput, emailError, 'Email is required');
+                return false;
+            }
+
+            // Simple email validation
+            const atSymbol = String.fromCharCode(64);
+            if (!email.includes(atSymbol) || !email.includes('.') || email.length < 5) {
+                showFieldError(emailInput, emailError, 'Please enter a valid email address');
+                return false;
+            }
+
+            clearFieldError(emailInput, emailError);
+            return true;
+        }
+
+        function validateUsername(username) {
+            const usernameError = document.getElementById('usernameError');
+            const usernameInput = document.getElementById('username');
+
+            if (!username) {
+                showFieldError(usernameInput, usernameError, 'Username is required');
+                return false;
+            }
+
+            if (username.length < 3) {
+                showFieldError(usernameInput, usernameError, 'Username must be at least 3 characters long');
+                return false;
+            }
+
+            if (username.length > 50) {
+                showFieldError(usernameInput, usernameError, 'Username must be less than 50 characters');
+                return false;
+            }
+
+            // Simple username validation - allow letters, numbers, dots, underscores, hyphens
+            const allowedChars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._-';
+            for (let i = 0; i < username.length; i++) {
+                if (!allowedChars.includes(username[i])) {
+                    showFieldError(usernameInput, usernameError, 'Username can only contain letters, numbers, dots, underscores, and hyphens');
+                    return false;
+                }
+            }
+
+            clearFieldError(usernameInput, usernameError);
+            return true;
+        }
+
+        function showFieldError(input, errorElement, message) {
+            input.classList.add('is-invalid');
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+        }
+
+        function clearFieldError(input, errorElement) {
+            input.classList.remove('is-invalid');
+            errorElement.textContent = '';
+            errorElement.style.display = 'none';
+        }
+
+        function clearValidationErrors() {
+            const emailInput = document.getElementById('email');
+            const usernameInput = document.getElementById('username');
+            const emailError = document.getElementById('emailError');
+            const usernameError = document.getElementById('usernameError');
+
+            clearFieldError(emailInput, emailError);
+            clearFieldError(usernameInput, usernameError);
+        }
+
+        function displayValidationErrors(errors) {
+            if (errors) {
+                if (errors.email) {
+                    showFieldError(document.getElementById('email'), document.getElementById('emailError'), errors.email);
+                }
+                if (errors.username) {
+                    showFieldError(document.getElementById('username'), document.getElementById('usernameError'), errors.username);
+                }
+            }
+        }
     </script>
 }

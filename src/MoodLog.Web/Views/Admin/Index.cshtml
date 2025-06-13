@@ -4,6 +4,8 @@
     Layout = "_AdminLayout";
 }
 
+@Html.AntiForgeryToken()
+
 <div class="admin-dashboard">
     <!-- Stats Overview -->
     <div class="stats-overview">
@@ -177,6 +179,106 @@
                 </button>
             </div>
         </div>
+
+        <div class="action-card">
+            <div class="action-icon">
+                <i class="fas fa-stethoscope"></i>
+            </div>
+            <div class="action-content">
+                <h4>System Diagnostics</h4>
+                <p>Advanced C# features demonstration and system health monitoring</p>
+                <a href="@Url.Action("Index", "Diagnostics")" class="btn btn-primary">
+                    <i class="fas fa-arrow-right me-1"></i>View Diagnostics
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Demo Data Management Section -->
+    <div class="demo-data-section mt-5">
+        <div class="section-header">
+            <h3><i class="fas fa-database me-2"></i>Demo Data Management</h3>
+            <p class="text-muted">Perfect for presentations, screen sharing, and showcasing MoodLog's capabilities</p>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <div class="demo-card">
+                    <div class="demo-header">
+                        <div class="demo-icon">
+                            <i class="fas fa-magic"></i>
+                        </div>
+                        <div class="demo-title">
+                            <h4>Comprehensive Mock Data</h4>
+                            <p>Generate realistic mood tracking data for professional demonstrations</p>
+                        </div>
+                    </div>
+
+                    <div class="demo-features">
+                        <div class="feature-grid">
+                            <div class="feature-item">
+                                <i class="fas fa-calendar-alt"></i>
+                                <span>60+ entries spanning 3 months</span>
+                            </div>
+                            <div class="feature-item">
+                                <i class="fas fa-chart-line"></i>
+                                <span>Realistic mood patterns & trends</span>
+                            </div>
+                            <div class="feature-item">
+                                <i class="fas fa-tags"></i>
+                                <span>30+ comprehensive mood tags</span>
+                            </div>
+                            <div class="feature-item">
+                                <i class="fas fa-clock"></i>
+                                <span>Varied timestamps & contexts</span>
+                            </div>
+                            <div class="feature-item">
+                                <i class="fas fa-sticky-note"></i>
+                                <span>Meaningful notes & insights</span>
+                            </div>
+                            <div class="feature-item">
+                                <i class="fas fa-trophy"></i>
+                                <span>Achievement progress data</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="demo-actions">
+                        <button class="btn btn-success btn-lg" onclick="seedMockData()" id="seedDataBtn">
+                            <i class="fas fa-seedling me-2"></i>Generate Demo Data
+                        </button>
+                        <button class="btn btn-outline-danger" onclick="clearMockData()" id="clearDataBtn">
+                            <i class="fas fa-trash-alt me-2"></i>Clear Data
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="demo-info">
+                    <div class="info-card">
+                        <h5><i class="fas fa-lightbulb me-2"></i>Perfect For</h5>
+                        <ul class="info-list">
+                            <li><i class="fas fa-presentation"></i>Client presentations</li>
+                            <li><i class="fas fa-desktop"></i>Screen sharing demos</li>
+                            <li><i class="fas fa-users"></i>Team meetings</li>
+                            <li><i class="fas fa-chart-bar"></i>Analytics showcases</li>
+                            <li><i class="fas fa-mobile-alt"></i>Mobile app demos</li>
+                        </ul>
+                    </div>
+
+                    <div class="info-card">
+                        <h5><i class="fas fa-shield-alt me-2"></i>Safe & Reversible</h5>
+                        <ul class="info-list">
+                            <li><i class="fas fa-check"></i>Non-destructive process</li>
+                            <li><i class="fas fa-undo"></i>Easily removable</li>
+                            <li><i class="fas fa-user-shield"></i>Admin account only</li>
+                            <li><i class="fas fa-database"></i>Preserves real data</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -210,85 +312,171 @@
 
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
     <script>
+        // Debug: Log admin chart data
+        console.log('Admin Charts Debug: Starting chart initialization');
+
         // User Growth Chart
         const userGrowthCtx = document.getElementById('userGrowthChart').getContext('2d');
         const userGrowthData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.UserGrowthData));
-        
-        new Chart(userGrowthCtx, {
-            type: 'line',
-            data: {
-                labels: userGrowthData.map(d => d.month),
-                datasets: [{
-                    label: 'Users',
-                    data: userGrowthData.map(d => d.userCount),
-                    borderColor: '#667eea',
-                    backgroundColor: 'rgba(102, 126, 234, 0.1)',
-                    borderWidth: 3,
-                    fill: true,
-                    tension: 0.4,
-                    pointBackgroundColor: '#667eea',
-                    pointBorderColor: getComputedStyle(document.documentElement).getPropertyValue('--text-on-primary') || '#fff',
-                    pointBorderWidth: 2,
-                    pointRadius: 6
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: false
-                    }
+
+        console.log('User Growth Data:', userGrowthData);
+
+        try {
+            const userGrowthChart = new Chart(userGrowthCtx, {
+                type: 'line',
+                data: {
+                    labels: userGrowthData.map(d => d.month),
+                    datasets: [{
+                        label: 'Users',
+                        data: userGrowthData.map(d => d.userCount),
+                        borderColor: '#7B61FF',
+                        backgroundColor: 'rgba(123, 97, 255, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#7B61FF',
+                        pointBorderColor: '#FFFFFF',
+                        pointBorderWidth: 2,
+                        pointRadius: 6,
+                        pointHoverRadius: 8
+                    }]
                 },
-                scales: {
-                    x: {
-                        grid: {
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
                             display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleColor: '#FFFFFF',
+                            bodyColor: '#FFFFFF',
+                            borderColor: '#7B61FF',
+                            borderWidth: 1,
+                            cornerRadius: 8,
+                            callbacks: {
+                                label: function(context) {
+                                    return `Users: ${context.parsed.y}`;
+                                }
+                            }
                         }
                     },
-                    y: {
-                        beginAtZero: true,
-                        grid: {
-                            color: 'rgba(0,0,0,0.1)'
+                    scales: {
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: '#000000',
+                                font: {
+                                    size: 12,
+                                    weight: '500'
+                                }
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.1)',
+                                lineWidth: 1
+                            },
+                            ticks: {
+                                color: '#000000',
+                                font: {
+                                    size: 12,
+                                    weight: '500'
+                                }
+                            }
                         }
+                    },
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
                     }
                 }
-            }
-        });
+            });
+            console.log('User Growth Chart created successfully:', userGrowthChart);
+        } catch (error) {
+            console.error('Error creating user growth chart:', error);
+        }
 
         // Mood Distribution Chart
         const moodDistCtx = document.getElementById('moodDistributionChart').getContext('2d');
         const moodDistData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.MoodDistribution));
+
+        console.log('Admin Mood Distribution Data:', moodDistData);
+
+        // Enhanced mood labels and colors for 10-point scale
+        const moodLabels = {
+            1: 'Terrible', 2: 'Very Bad', 3: 'Bad', 4: 'Poor', 5: 'Okay',
+            6: 'Fine', 7: 'Good', 8: 'Great', 9: 'Excellent', 10: 'Amazing'
+        };
+        const moodColors = {
+            1: '#dc2626', 2: '#ef4444', 3: '#f97316', 4: '#f59e0b', 5: '#eab308',
+            6: '#84cc16', 7: '#22c55e', 8: '#10b981', 9: '#059669', 10: '#047857'
+        };
         
-        const moodLabels = {1: 'Very Bad', 2: 'Bad', 3: 'Okay', 4: 'Good', 5: 'Great'};
-        const moodColors = {1: '#ef4444', 2: '#f97316', 3: '#eab308', 4: '#22c55e', 5: '#10b981'};
-        
-        new Chart(moodDistCtx, {
-            type: 'doughnut',
-            data: {
-                labels: Object.keys(moodDistData).map(k => moodLabels[k] || k),
-                datasets: [{
-                    data: Object.values(moodDistData),
-                    backgroundColor: Object.keys(moodDistData).map(k => moodColors[k] || '#6b7280'),
-                    borderWidth: 0
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            padding: 20,
-                            usePointStyle: true
-                        }
-                    }
+        try {
+            const adminMoodChart = new Chart(moodDistCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(moodDistData).map(k => moodLabels[k] || k),
+                    datasets: [{
+                        data: Object.values(moodDistData),
+                        backgroundColor: Object.keys(moodDistData).map(k => moodColors[k] || '#6b7280'),
+                        borderWidth: 3,
+                        borderColor: '#FFFFFF',
+                        hoverBorderWidth: 4,
+                        hoverBorderColor: '#7B61FF'
+                    }]
                 },
-                cutout: '60%'
-            }
-        });
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                usePointStyle: true,
+                                color: '#000000',
+                                font: {
+                                    size: 12,
+                                    weight: '500'
+                                }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleColor: '#FFFFFF',
+                            bodyColor: '#FFFFFF',
+                            borderColor: '#7B61FF',
+                            borderWidth: 1,
+                            cornerRadius: 8,
+                            callbacks: {
+                                label: function(context) {
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = Math.round((context.parsed / total) * 100);
+                                    return `${context.label}: ${context.parsed} entries (${percentage}%)`;
+                                }
+                            }
+                        }
+                    },
+                    cutout: '60%',
+                    interaction: {
+                        intersect: false
+                    }
+                }
+            });
+            console.log('Admin Mood Distribution Chart created successfully:', adminMoodChart);
+        } catch (error) {
+            console.error('Error creating admin mood distribution chart:', error);
+        }
+
+        console.log('Admin charts initialization completed');
 
         function exportSystemData() {
             // Create a simple CSV export of system stats
@@ -310,6 +498,119 @@
             a.download = 'moodlog-system-report.csv';
             a.click();
             window.URL.revokeObjectURL(url);
+        }
+
+        // Mock Data Management Functions
+        function seedMockData() {
+            const seedBtn = document.getElementById('seedDataBtn');
+            const originalText = seedBtn.innerHTML;
+
+            // Show loading state
+            seedBtn.disabled = true;
+            seedBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Generating Data...';
+
+            fetch('@Url.Action("SeedMockData", "Admin")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: new URLSearchParams({
+                    __RequestVerificationToken: document.querySelector('input[name="__RequestVerificationToken"]').value
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification(data.message, 'success');
+                    // Refresh the page after a short delay to show updated stats
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 2000);
+                } else {
+                    showNotification(data.message, 'error');
+                }
+            })
+            .catch(error => {
+                showNotification('Failed to generate mock data. Please try again.', 'error');
+            })
+            .finally(() => {
+                // Restore button state
+                seedBtn.disabled = false;
+                seedBtn.innerHTML = originalText;
+            });
+        }
+
+        function clearMockData() {
+            if (!confirm('Are you sure you want to clear all mock data? This action cannot be undone.')) {
+                return;
+            }
+
+            const clearBtn = document.getElementById('clearDataBtn');
+            const originalText = clearBtn.innerHTML;
+
+            // Show loading state
+            clearBtn.disabled = true;
+            clearBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Clearing Data...';
+
+            fetch('@Url.Action("ClearMockData", "Admin")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: new URLSearchParams({
+                    __RequestVerificationToken: document.querySelector('input[name="__RequestVerificationToken"]').value
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification(data.message, 'success');
+                    // Refresh the page after a short delay to show updated stats
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 2000);
+                } else {
+                    showNotification(data.message, 'error');
+                }
+            })
+            .catch(error => {
+                showNotification('Failed to clear mock data. Please try again.', 'error');
+            })
+            .finally(() => {
+                // Restore button state
+                clearBtn.disabled = false;
+                clearBtn.innerHTML = originalText;
+            });
+        }
+
+        function showNotification(message, type) {
+            // Remove existing notifications
+            const existingNotifications = document.querySelectorAll('.admin-notification');
+            existingNotifications.forEach(n => n.remove());
+
+            // Create notification
+            const notification = document.createElement('div');
+            notification.className = `admin-notification ${type}`;
+            notification.innerHTML = `
+                <div class="notification-content">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} me-2"></i>
+                    ${message}
+                </div>
+                <button class="notification-close" onclick="this.parentElement.remove()">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+
+            document.body.appendChild(notification);
+
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                if (notification.parentElement) {
+                    notification.remove();
+                }
+            }, 5000);
         }
     </script>
 }

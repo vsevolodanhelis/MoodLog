@@ -119,6 +119,24 @@
             text-align: center;
         }
 
+        /* Special styling for Back to App button */
+        .back-to-app-link {
+            background: rgba(34, 197, 94, 0.15) !important;
+            color: #22c55e !important;
+            border-left: 3px solid #22c55e;
+            font-weight: 600;
+        }
+
+        .back-to-app-link:hover {
+            background: rgba(34, 197, 94, 0.25) !important;
+            color: #16a34a !important;
+            transform: translateX(8px);
+        }
+
+        .back-to-app-link i {
+            color: #22c55e;
+        }
+
         /* Main Content */
         .admin-main {
             margin-left: 280px;
@@ -821,10 +839,14 @@
                     Tags
                 </a>
             </div>
+
+            <!-- Navigation Separator -->
+            <div style="height: 1px; background: rgba(255, 255, 255, 0.1); margin: 1rem 1.5rem;"></div>
+
             <div class="admin-nav-item">
-                <a href="@Url.Action("Index", "Dashboard")" class="admin-nav-link">
-                    <i class="fas fa-arrow-left"></i>
-                    Back to App
+                <a href="@Url.Action("Index", "Dashboard")" class="admin-nav-link back-to-app-link">
+                    <i class="fas fa-home"></i>
+                    Return to Main App
                 </a>
             </div>
         </div>

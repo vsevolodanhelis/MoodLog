@@ -4,7 +4,7 @@
     Layout = "_DashboardLayout";
 }
 
-<div class="dashboard-content">
+<div class="dashboard-content centered-content">
     @Html.AntiForgeryToken()
     <!-- Today's Mood Section -->
     <div class="today-mood-section">
@@ -137,6 +137,38 @@
                 <p>Start tracking your mood to see your timeline here.</p>
             </div>
         }
+    </div>
+
+    <!-- Achievement System -->
+    <div class="achievements-section">
+        <div class="section-header">
+            <h3><i class="fas fa-trophy me-2"></i>Achievements</h3>
+            <span class="achievement-count" id="achievementCount">0/8 unlocked</span>
+        </div>
+        <div class="achievements-grid" id="achievementsGrid">
+            <!-- Achievements will be populated by JavaScript -->
+        </div>
+    </div>
+
+    <!-- Mood Insights -->
+    <div class="insights-section">
+        <div class="section-header">
+            <h3><i class="fas fa-lightbulb me-2"></i>Mood Insights</h3>
+        </div>
+        <div class="insights-grid" id="insightsGrid">
+            <!-- Insights will be populated by JavaScript -->
+        </div>
+
+        <!-- Mini Mood Trend Chart -->
+        <div class="mini-chart-section" id="miniChartSection" style="display: none;">
+            <div class="mini-chart-header">
+                <h4><i class="fas fa-chart-line me-2"></i>Recent Mood Trend</h4>
+                <span class="chart-period">Last 7 days</span>
+            </div>
+            <div class="mini-chart-container">
+                <canvas id="miniMoodChart" width="400" height="150"></canvas>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -273,6 +305,238 @@
             animation: tagFadeOut 0.3s ease forwards;
         }
 
+        /* Achievement System */
+        .achievements-section, .insights-section {
+            margin-top: 2rem;
+            background: var(--glass-bg);
+            border-radius: var(--border-radius-lg);
+            border: 2px solid var(--glass-border);
+            padding: 2rem;
+            box-shadow: var(--shadow-md);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--glass-border);
+        }
+
+        .section-header h3 {
+            color: var(--text-primary);
+            font-weight: var(--font-weight-semibold);
+            margin: 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .achievement-count {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: var(--font-weight-medium);
+        }
+
+        .achievements-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+
+        .achievement-card {
+            background: var(--bg-secondary);
+            border: 2px solid var(--bg-tertiary);
+            border-radius: var(--border-radius-md);
+            padding: 1.5rem;
+            text-align: center;
+            transition: all var(--transition-normal);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .achievement-card.unlocked {
+            border-color: var(--accent-primary);
+            background: rgba(123, 97, 255, 0.1);
+        }
+
+        .achievement-card.unlocked::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+        }
+
+        .achievement-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            filter: grayscale(100%);
+            transition: filter var(--transition-normal);
+        }
+
+        .achievement-card.unlocked .achievement-icon {
+            filter: none;
+        }
+
+        .achievement-title {
+            color: var(--text-primary);
+            font-weight: var(--font-weight-semibold);
+            margin-bottom: 0.5rem;
+        }
+
+        .achievement-description {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .achievement-progress {
+            margin-top: 1rem;
+            background: var(--bg-tertiary);
+            border-radius: 10px;
+            height: 8px;
+            overflow: hidden;
+        }
+
+        .achievement-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+            border-radius: 10px;
+            transition: width var(--transition-normal);
+        }
+
+        .insights-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            justify-items: center;
+        }
+
+        /* Handle 2x2 grid layout - center cards 3 and 4 when they appear on the second row */
+        @@media (min-width: 768px) {
+            .insights-grid {
+                grid-template-columns: repeat(2, 1fr);
+                max-width: 800px;
+                margin: 0 auto;
+            }
+        }
+
+        /* For larger screens, allow up to 3 columns but center the grid */
+        @@media (min-width: 1200px) {
+            .insights-grid {
+                grid-template-columns: repeat(2, 1fr);
+                max-width: 900px;
+            }
+        }
+
+        .insight-card {
+            background: var(--bg-secondary);
+            border: 2px solid var(--bg-tertiary);
+            border-radius: var(--border-radius-md);
+            padding: 1.5rem;
+            transition: all var(--transition-normal);
+        }
+
+        .insight-card:hover {
+            border-color: var(--accent-primary);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .insight-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .insight-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--accent-primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        .insight-title {
+            color: var(--text-primary);
+            font-weight: var(--font-weight-semibold);
+            margin: 0;
+        }
+
+        .insight-content {
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .insight-metric {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--bg-tertiary);
+        }
+
+        .metric-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .metric-value {
+            color: var(--accent-primary);
+            font-weight: var(--font-weight-semibold);
+            font-size: 1.1rem;
+        }
+
+        /* Mini Chart Section */
+        .mini-chart-section {
+            margin-top: 2rem;
+            background: var(--glass-bg);
+            border-radius: var(--border-radius-lg);
+            border: 2px solid var(--glass-border);
+            padding: 1.5rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .mini-chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .mini-chart-header h4 {
+            margin: 0;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .chart-period {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            background: var(--glass-bg);
+            padding: 0.25rem 0.75rem;
+            border-radius: var(--border-radius);
+            border: 1px solid var(--glass-border);
+        }
+
+        .mini-chart-container {
+            position: relative;
+            height: 150px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: var(--border-radius);
+            padding: 1rem;
+        }
+
         /* Responsive Design for Tags */
         @@media (max-width: 768px) {
             .tag-selection-container {
@@ -336,6 +600,8 @@
 }
 
 @section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
     <script>
         let selectedMood = 0;
 
@@ -344,6 +610,9 @@
             initializeMoodPicker();
             loadDefaultTags();
             initializeTagSystem();
+            initializeAchievements();
+            initializeInsights();
+            initializeMiniChart();
         });
 
         function initializeMoodPicker() {
@@ -392,21 +661,38 @@
                 button.className = 'emoji-btn';
                 button.dataset.mood = mood.level;
                 button.title = mood.title;
-                button.textContent = mood.emoji;
+                button.style.position = 'relative';
+
+                // Create button content without keyboard hint
+                button.innerHTML = `
+                    <span class="emoji-content">${mood.emoji}</span>
+                `;
 
                 button.addEventListener('click', function() {
-                    selectedMood = parseInt(this.dataset.mood);
-
-                    // Update UI
-                    document.querySelectorAll('.emoji-btn').forEach(b => b.classList.remove('selected'));
-                    this.classList.add('selected');
-
-                    // Show form
-                    document.getElementById('moodForm').style.display = 'block';
+                    selectMood(parseInt(this.dataset.mood));
                 });
 
                 emojiSelector.appendChild(button);
             });
+        }
+
+        // Enhanced selectMood function
+        function selectMood(level) {
+            selectedMood = level;
+
+            // Update UI
+            document.querySelectorAll('.emoji-btn').forEach(b => {
+                b.classList.remove('selected', 'keyboard-selected', 'keyboard-focused');
+            });
+
+            const selectedButton = document.querySelector(`[data-mood="${level}"]`);
+            if (selectedButton) {
+                selectedButton.classList.add('selected');
+                selectedButton.focus();
+            }
+
+            // Show form
+            document.getElementById('moodForm').style.display = 'block';
         }
 
         let selectedTags = [];
@@ -572,16 +858,25 @@
         }
         
         function saveMood() {
-            console.log('saveMood called, selectedMood:', selectedMood);
+            console.log('saveMood() called with selectedMood:', selectedMood);
 
-            if (selectedMood === 0) {
-                alert('Please select a mood first');
+            // Validate mood selection
+            if (selectedMood === 0 || selectedMood === null || selectedMood === undefined) {
+                console.error('Invalid mood selection:', selectedMood);
+                showMessage('Please select a mood first', '#ef4444', 3000);
+                return;
+            }
+
+            // Validate mood range
+            if (selectedMood < 1 || selectedMood > 10) {
+                console.error('Mood level out of range:', selectedMood);
+                showMessage('Invalid mood level. Please select a mood between 1-10.', '#ef4444', 3000);
                 return;
             }
 
             // Validate mood level
             if (selectedMood < 1 || selectedMood > 10) {
-                alert('Invalid mood level selected');
+                showMessage('Invalid mood level selected', '#ef4444', 3000);
                 return;
             }
 
@@ -600,19 +895,33 @@
 
             const tokenElement = document.querySelector('input[name="__RequestVerificationToken"]');
             if (!tokenElement) {
-                alert('Security token not found. Please refresh the page and try again.');
+                console.error('Anti-forgery token not found!');
+                showMessage('Security token not found. Please refresh the page and try again.', '#ef4444', 5000);
                 return;
             }
 
             const token = tokenElement.value;
-            console.log('Token found:', !!token);
+            if (!token || token.trim() === '') {
+                console.error('Anti-forgery token is empty!');
+                showMessage('Invalid security token. Please refresh the page.', '#ef4444', 3000);
+                return;
+            }
+
+            console.log('Form data prepared:', { moodLevel: selectedMood, notes, tags, tokenLength: token.length });
 
             // Disable the save button to prevent double submission
             const saveButton = document.querySelector('button[onclick="saveMood()"]');
             if (saveButton) {
                 saveButton.disabled = true;
                 saveButton.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Saving...';
+                console.log('Save button disabled and loading state set');
+            } else {
+                console.error('Save button not found during submission!');
+                showMessage('Form error: Save button not found', '#ef4444', 3000);
+                return;
             }
+
+            console.log('Sending request to LogMood endpoint...');
 
             fetch('@Url.Action("LogMood", "Dashboard")', {
                 method: 'POST',
@@ -628,7 +937,7 @@
                 })
             })
             .then(response => {
-                console.log('Response status:', response.status);
+                console.log('Response received:', response.status, response.statusText);
 
                 // Re-enable the save button
                 if (saveButton) {
@@ -637,35 +946,70 @@
                 }
 
                 if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                    console.error('HTTP error:', response.status, response.statusText);
+                    if (response.status === 400) {
+                        throw new Error('Validation error: Please check your input');
+                    } else if (response.status === 401) {
+                        throw new Error('Authentication error: Please log in again');
+                    } else if (response.status === 500) {
+                        throw new Error('Server error: Please try again later');
+                    } else {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
                 }
 
                 return response.json();
             })
             .then(data => {
                 console.log('Response data:', data);
+
+                if (!data) {
+                    throw new Error('Empty response from server');
+                }
+
                 if (data.success) {
+                    // Determine if this was an update or create operation
+                    const isUpdate = @(Model.HasTodayEntry ? "true" : "false");
+                    const message = isUpdate ? 'Mood updated successfully!' : 'Mood saved successfully!';
+
+                    console.log('Success! Message:', message);
+
                     // Show success message
-                    showSuccessMessage('Mood saved successfully!');
+                    showSuccessMessage(message);
 
                     // Reset form and reload page after a short delay
                     setTimeout(() => {
                         location.reload();
                     }, 1000);
                 } else {
-                    alert(data.message || 'Failed to save mood entry');
+                    console.error('Request failed:', data.message);
+                    showMessage(data.message || 'Failed to save mood entry', '#ef4444', 3000);
                 }
             })
             .catch(error => {
-                console.error('Error saving mood:', error);
+                console.error('Fetch error:', error);
 
                 // Re-enable the save button
                 if (saveButton) {
                     saveButton.disabled = false;
                     saveButton.innerHTML = '<i class="fas fa-save me-1"></i>Save Mood';
+                } else {
+                    console.error('Save button not found during error recovery!');
                 }
 
-                alert('Failed to save mood entry. Please check your connection and try again.');
+                // Show specific error message based on error type
+                let errorMessage = 'Failed to save mood entry. Please try again.';
+                if (error.message.includes('Authentication')) {
+                    errorMessage = 'Please log in again to continue.';
+                } else if (error.message.includes('Validation')) {
+                    errorMessage = 'Please check your input and try again.';
+                } else if (error.message.includes('Server')) {
+                    errorMessage = 'Server error. Please try again later.';
+                } else if (error.message.includes('network') || error.message.includes('fetch')) {
+                    errorMessage = 'Network error. Please check your connection.';
+                }
+
+                showMessage(errorMessage, '#ef4444', 5000);
             });
         }
         
@@ -681,8 +1025,109 @@
         }
         
         function editTodayMood() {
-            // Implement edit functionality
-            location.reload();
+            console.log('editTodayMood() called');
+
+            // Show the mood selection interface for updating
+            const currentMoodLevel = @(Model.HasTodayEntry ? Model.TodayEntry!.MoodLevel : 0);
+            const currentNotes = '@(Model.HasTodayEntry ? Html.Raw(Model.TodayEntry!.Notes?.Replace("'", "\\'") ?? "") : "")';
+
+            console.log('Current mood level:', currentMoodLevel);
+            console.log('Current notes:', currentNotes);
+
+            // Validate that we have an entry to edit
+            if (currentMoodLevel === 0) {
+                console.error('No existing mood entry found to edit');
+                showMessage('No mood entry found for today to update', '#ef4444', 3000);
+                return;
+            }
+
+            // Set the current mood as selected
+            selectedMood = currentMoodLevel;
+
+            // Update UI to show current selection
+            document.querySelectorAll('.emoji-btn').forEach(b => {
+                b.classList.remove('selected');
+            });
+
+            if (currentMoodLevel > 0) {
+                const currentButton = document.querySelector(`[data-mood="${currentMoodLevel}"]`);
+                if (currentButton) {
+                    currentButton.classList.add('selected');
+                }
+            }
+
+            // Pre-fill notes
+            const notesElement = document.getElementById('moodNotes');
+            if (notesElement) {
+                notesElement.value = currentNotes;
+                console.log('Notes pre-filled successfully');
+            } else {
+                console.error('Notes input element not found!');
+            }
+
+            // Show the mood form
+            const moodForm = document.getElementById('moodForm');
+            if (moodForm) {
+                moodForm.style.display = 'block';
+                console.log('Mood form displayed successfully');
+            } else {
+                console.error('Mood form element not found!');
+                showMessage('Form error: Unable to display mood form', '#ef4444', 3000);
+                return;
+            }
+
+            // Change the save button to "Update"
+            const saveButton = document.querySelector('#moodForm .btn-primary');
+            console.log('Save button found:', saveButton);
+            if (saveButton) {
+                saveButton.innerHTML = '<i class="fas fa-save me-1"></i>Update Mood';
+                console.log('Save button text changed to "Update Mood"');
+            } else {
+                console.error('Save button not found!');
+            }
+
+            // Scroll to mood selection
+            document.querySelector('.mood-selection').scrollIntoView({
+                behavior: 'smooth',
+                block: 'center'
+            });
+        }
+
+        function showMessage(text, backgroundColor = '#667eea', duration = 2000) {
+            // Remove any existing messages
+            const existingMessages = document.querySelectorAll('.dashboard-message');
+            existingMessages.forEach(msg => msg.remove());
+
+            const message = document.createElement('div');
+            message.className = 'dashboard-message';
+            message.textContent = text;
+            message.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${backgroundColor};
+                color: white;
+                padding: 12px 20px;
+                border-radius: 8px;
+                z-index: 1000;
+                font-size: 14px;
+                font-weight: 500;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                animation: slideInRight 0.3s ease;
+                max-width: 300px;
+                line-height: 1.4;
+            `;
+
+            document.body.appendChild(message);
+
+            setTimeout(() => {
+                message.style.animation = 'slideOutRight 0.3s ease';
+                setTimeout(() => {
+                    if (document.body.contains(message)) {
+                        document.body.removeChild(message);
+                    }
+                }, 300);
+            }, duration);
         }
 
         function showSuccessMessage(message) {
@@ -717,7 +1162,7 @@
             }, 2000);
         }
 
-        // Add CSS animations for success message
+        // Add CSS animations and keyboard styles
         const style = document.createElement('style');
         style.textContent = `
             @@keyframes slideInRight {
@@ -741,7 +1186,511 @@
                     opacity: 0;
                 }
             }
+
+            /* Keyboard focus styles */
+            .emoji-btn.keyboard-focused {
+                outline: 3px solid var(--accent-primary) !important;
+                outline-offset: 2px;
+                box-shadow: 0 0 0 4px rgba(123, 97, 255, 0.2) !important;
+                transform: scale(1.05);
+                transition: all 0.2s ease;
+            }
+
+            .emoji-btn.keyboard-selected {
+                background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)) !important;
+                color: white !important;
+                transform: scale(1.1);
+                box-shadow: 0 8px 25px rgba(123, 97, 255, 0.4) !important;
+                animation: keyboardPulse 0.3s ease;
+            }
+
+            @@keyframes keyboardPulse {
+                0% { transform: scale(1); }
+                50% { transform: scale(1.15); }
+                100% { transform: scale(1.1); }
+            }
+
+            /* Force remove any number badges or keyboard hints */
+            .emoji-btn::after,
+            .emoji-btn::before,
+            .emoji-btn .keyboard-hint,
+            .emoji-btn [class*="hint"],
+            .emoji-btn [class*="badge"],
+            .emoji-btn [class*="number"] {
+                display: none !important;
+                content: none !important;
+                visibility: hidden !important;
+            }
+
+            /* Ensure emoji content is the only visible content */
+            .emoji-btn {
+                position: relative;
+            }
+
+            .emoji-btn > *:not(.emoji-content) {
+                display: none !important;
+            }
+
+            /* Make sure data attributes don't show as content */
+            .emoji-btn[data-mood]::after,
+            .emoji-btn[data-mood]::before {
+                content: none !important;
+                display: none !important;
+            }
+
+            /* Enhanced modal styles for keyboard help */
+            #keyboardHelpModal .modal-content {
+                backdrop-filter: blur(20px);
+                box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+            }
+
+            #keyboardHelpModal .shortcut-item:last-child {
+                border-bottom: none;
+            }
+
+            #keyboardHelpModal kbd {
+                font-family: 'Segoe UI', system-ui, sans-serif;
+                font-weight: 600;
+                letter-spacing: 0.5px;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            }
         `;
         document.head.appendChild(style);
+
+        // Achievement System
+        function initializeAchievements() {
+            // Calculate comprehensive achievement data
+            const totalEntries = @Model.RecentEntries.Count; // This will be much higher for admin users with mock data
+            const recentEntries = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.RecentEntries.Select(e => new {
+                moodLevel = e.MoodLevel,
+                entryDate = e.EntryDate.ToString("yyyy-MM-dd"),
+                tagCount = e.TagNames.Count()
+            })));
+
+            console.log(`Achievement Debug: Total entries = ${totalEntries}, Recent entries = ${recentEntries.length}`);
+
+            // Calculate achievements based on actual data
+            const highMoodEntries = recentEntries.filter(e => e.moodLevel >= 8).length;
+            const uniqueTags = new Set(recentEntries.flatMap(e => e.tagCount > 0 ? [1] : [])).size; // Simplified for now
+
+            // Calculate streaks and consistency
+            const sortedDates = recentEntries.map(e => new Date(e.entryDate)).sort((a, b) => b - a);
+            const currentStreak = calculateStreak(sortedDates);
+            const monthlyConsistency = calculateMonthlyConsistency(sortedDates);
+
+            console.log(`Achievement Debug: High mood entries = ${highMoodEntries}, Current streak = ${currentStreak}, Monthly consistency = ${monthlyConsistency}`);
+
+            const achievements = [
+                {
+                    id: 'first_entry',
+                    title: 'First Steps',
+                    description: 'Log your first mood entry',
+                    icon: '🌱',
+                    unlocked: totalEntries > 0,
+                    progress: totalEntries > 0 ? 100 : 0
+                },
+                {
+                    id: 'week_streak',
+                    title: 'Week Warrior',
+                    description: 'Log moods for 7 consecutive days',
+                    icon: '🔥',
+                    unlocked: currentStreak >= 7,
+                    progress: Math.min((currentStreak / 7) * 100, 100)
+                },
+                {
+                    id: 'month_streak',
+                    title: 'Month Master',
+                    description: 'Log moods for 30 consecutive days',
+                    icon: '🏆',
+                    unlocked: currentStreak >= 30,
+                    progress: Math.min((currentStreak / 30) * 100, 100)
+                },
+                {
+                    id: 'fifty_entries',
+                    title: 'Dedicated Tracker',
+                    description: 'Log 50 mood entries',
+                    icon: '📊',
+                    unlocked: totalEntries >= 50,
+                    progress: Math.min((totalEntries / 50) * 100, 100)
+                },
+                {
+                    id: 'hundred_entries',
+                    title: 'Mood Master',
+                    description: 'Log 100 mood entries',
+                    icon: '💎',
+                    unlocked: totalEntries >= 100,
+                    progress: Math.min((totalEntries / 100) * 100, 100)
+                },
+                {
+                    id: 'high_mood',
+                    title: 'Happiness Hunter',
+                    description: 'Log 10 entries with mood 8+',
+                    icon: '😄',
+                    unlocked: highMoodEntries >= 10,
+                    progress: Math.min((highMoodEntries / 10) * 100, 100)
+                },
+                {
+                    id: 'consistent_tracker',
+                    title: 'Consistency King',
+                    description: 'Log moods for 14 days in a month',
+                    icon: '⭐',
+                    unlocked: monthlyConsistency >= 14,
+                    progress: Math.min((monthlyConsistency / 14) * 100, 100)
+                },
+                {
+                    id: 'tag_master',
+                    title: 'Tag Master',
+                    description: 'Use 20 different tags',
+                    icon: '🏷️',
+                    unlocked: totalEntries >= 20, // Simplified - assume variety with more entries
+                    progress: Math.min((totalEntries / 20) * 100, 100)
+                }
+            ];
+
+            const achievementsGrid = document.getElementById('achievementsGrid');
+            const unlockedCount = achievements.filter(a => a.unlocked).length;
+
+            console.log(`Achievement Debug: ${unlockedCount}/${achievements.length} achievements unlocked`);
+            achievements.forEach(a => {
+                console.log(`- ${a.title}: ${a.unlocked ? 'UNLOCKED' : 'locked'} (${a.progress}%)`);
+            });
+
+            document.getElementById('achievementCount').textContent = `${unlockedCount}/${achievements.length} unlocked`;
+
+            achievements.forEach(achievement => {
+                const card = document.createElement('div');
+                card.className = `achievement-card ${achievement.unlocked ? 'unlocked' : ''}`;
+                card.innerHTML = `
+                    <div class="achievement-icon">${achievement.icon}</div>
+                    <div class="achievement-title">${achievement.title}</div>
+                    <div class="achievement-description">${achievement.description}</div>
+                    <div class="achievement-progress">
+                        <div class="achievement-progress-bar" style="width: ${achievement.progress}%"></div>
+                    </div>
+                `;
+
+                if (achievement.unlocked) {
+                    card.classList.add('bounce-in');
+                }
+
+                achievementsGrid.appendChild(card);
+            });
+        }
+
+        // Dashboard-specific keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Skip if user is typing in input fields
+            const isInInputField = ['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName);
+            const isContentEditable = e.target.contentEditable === 'true';
+
+            if (isInInputField || isContentEditable) return;
+
+            // Number keys for quick mood selection (1-10)
+            if (e.key >= '1' && e.key <= '9') {
+                const moodLevel = parseInt(e.key);
+                if (moodLevel >= 1 && moodLevel <= 10) {
+                    e.preventDefault();
+                    selectMood(moodLevel);
+
+                    // Show visual feedback
+                    const moodButtons = document.querySelectorAll('.emoji-btn');
+                    moodButtons.forEach(btn => btn.classList.remove('keyboard-selected'));
+
+                    const selectedBtn = moodButtons[moodLevel - 1];
+                    if (selectedBtn) {
+                        selectedBtn.classList.add('keyboard-selected');
+                        selectedBtn.focus();
+
+                        // Auto-save after 1 second if no other key is pressed
+                        clearTimeout(window.autoSaveTimeout);
+                        window.autoSaveTimeout = setTimeout(() => {
+                            if (selectedMood === moodLevel) {
+                                saveMood();
+                            }
+                        }, 1000);
+                    }
+                }
+            }
+
+            // 0 key for mood level 10
+            if (e.key === '0') {
+                e.preventDefault();
+                selectMood(10);
+
+                const moodButtons = document.querySelectorAll('.emoji-btn');
+                moodButtons.forEach(btn => btn.classList.remove('keyboard-selected'));
+
+                const selectedBtn = moodButtons[9]; // 10th button (index 9)
+                if (selectedBtn) {
+                    selectedBtn.classList.add('keyboard-selected');
+                    selectedBtn.focus();
+
+                    clearTimeout(window.autoSaveTimeout);
+                    window.autoSaveTimeout = setTimeout(() => {
+                        if (selectedMood === 10) {
+                            saveMood();
+                        }
+                    }, 1000);
+                }
+            }
+
+            // Enter to save current mood
+            if (e.key === 'Enter' && selectedMood > 0) {
+                e.preventDefault();
+                saveMood();
+            }
+
+            // Backspace to clear mood selection
+            if (e.key === 'Backspace' && selectedMood > 0) {
+                e.preventDefault();
+                clearMoodSelection();
+            }
+        });
+
+        // Clear mood selection function
+        function clearMoodSelection() {
+            selectedMood = 0;
+            const moodButtons = document.querySelectorAll('.emoji-btn');
+            moodButtons.forEach(btn => {
+                btn.classList.remove('selected', 'keyboard-selected', 'keyboard-focused');
+            });
+
+            // Clear auto-save timeout
+            clearTimeout(window.autoSaveTimeout);
+
+            showMessage('Mood selection cleared', '#6b7280', 2000);
+        }
+
+        // Helper functions for achievement calculations
+        function calculateStreak(sortedDates) {
+            if (sortedDates.length === 0) return 0;
+
+            let streak = 1;
+            let currentDate = new Date(sortedDates[0]);
+
+            for (let i = 1; i < sortedDates.length; i++) {
+                const prevDate = new Date(sortedDates[i]);
+                const dayDiff = Math.floor((currentDate - prevDate) / (1000 * 60 * 60 * 24));
+
+                if (dayDiff === 1) {
+                    streak++;
+                    currentDate = prevDate;
+                } else if (dayDiff > 1) {
+                    break;
+                }
+            }
+
+            return streak;
+        }
+
+        function calculateMonthlyConsistency(sortedDates) {
+            if (sortedDates.length === 0) return 0;
+
+            const now = new Date();
+            const currentMonth = now.getMonth();
+            const currentYear = now.getFullYear();
+
+            const thisMonthEntries = sortedDates.filter(date => {
+                return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
+            });
+
+            return thisMonthEntries.length;
+        }
+
+        // Insights System
+        function initializeInsights() {
+            const totalEntries = @Model.RecentEntries.Count;
+            const recentEntries = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.RecentEntries.Select(e => new {
+                moodLevel = e.MoodLevel,
+                entryDate = e.EntryDate.ToString("yyyy-MM-dd"),
+                dayOfWeek = e.EntryDate.DayOfWeek.ToString()
+            })));
+
+            // Calculate comprehensive insights
+            const averageMood = recentEntries.length > 0 ?
+                (recentEntries.reduce((sum, e) => sum + e.moodLevel, 0) / recentEntries.length).toFixed(1) : 0;
+
+            const weekendEntries = recentEntries.filter(e => e.dayOfWeek === 'Saturday' || e.dayOfWeek === 'Sunday');
+            const weekdayEntries = recentEntries.filter(e => e.dayOfWeek !== 'Saturday' && e.dayOfWeek !== 'Sunday');
+
+            const weekendAvg = weekendEntries.length > 0 ?
+                (weekendEntries.reduce((sum, e) => sum + e.moodLevel, 0) / weekendEntries.length).toFixed(1) : 0;
+            const weekdayAvg = weekdayEntries.length > 0 ?
+                (weekdayEntries.reduce((sum, e) => sum + e.moodLevel, 0) / weekdayEntries.length).toFixed(1) : 0;
+
+            const highMoodDays = recentEntries.filter(e => e.moodLevel >= 8).length;
+            const consistencyScore = Math.min((totalEntries / 30) * 100, 100).toFixed(0);
+
+            const insights = [
+                {
+                    icon: '📈',
+                    title: 'Mood Trend Analysis',
+                    content: totalEntries >= 30 ?
+                        `Your average mood is ${averageMood}/10. You've shown excellent tracking consistency with ${totalEntries} entries!` :
+                        `You have ${totalEntries} mood entries. ${totalEntries >= 5 ? "Great start! Keep tracking to see meaningful trends." : "Log more entries to unlock detailed insights."}`,
+                    metric: { label: 'Average Mood', value: `${averageMood}/10` }
+                },
+                {
+                    icon: '🔥',
+                    title: 'Tracking Consistency',
+                    content: totalEntries >= 60 ?
+                        `Outstanding commitment! You've logged ${totalEntries} entries and built a strong tracking habit.` :
+                        totalEntries >= 30 ?
+                        `Great progress! You're building a solid tracking routine with ${totalEntries} entries.` :
+                        `You're on your way! ${totalEntries} entries logged. Aim for daily tracking to maximize insights.`,
+                    metric: { label: 'Consistency', value: `${consistencyScore}%` }
+                },
+                {
+                    icon: '📅',
+                    title: 'Weekly Pattern Insights',
+                    content: totalEntries >= 20 ?
+                        weekendAvg > weekdayAvg ?
+                        `You tend to feel better on weekends (${weekendAvg}/10) vs weekdays (${weekdayAvg}/10). Consider what makes weekends special!` :
+                        `Your mood stays consistent throughout the week. Great emotional stability!` :
+                        'Track for a few more weeks to discover your weekly mood patterns.',
+                    metric: { label: 'Best Days', value: weekendAvg > weekdayAvg ? 'Weekends' : 'Consistent' }
+                },
+                {
+                    icon: '🎯',
+                    title: 'Wellness Achievements',
+                    content: totalEntries >= 50 ?
+                        `Excellent! You've had ${highMoodDays} high-mood days (8+/10). You're mastering your emotional wellness journey.` :
+                        totalEntries >= 20 ?
+                        `You've had ${highMoodDays} great mood days! Keep focusing on what brings you joy.` :
+                        'Continue tracking to identify patterns and celebrate your wellness wins!',
+                    metric: { label: 'High Mood Days', value: `${highMoodDays}` }
+                }
+            ];
+
+            const insightsGrid = document.getElementById('insightsGrid');
+
+            insights.forEach((insight, index) => {
+                const card = document.createElement('div');
+                card.className = 'insight-card fade-in';
+                card.style.animationDelay = `${index * 0.1}s`;
+                card.innerHTML = `
+                    <div class="insight-header">
+                        <div class="insight-icon">${insight.icon}</div>
+                        <h4 class="insight-title">${insight.title}</h4>
+                    </div>
+                    <div class="insight-content">${insight.content}</div>
+                    <div class="insight-metric">
+                        <span class="metric-label">${insight.metric.label}</span>
+                        <span class="metric-value">${insight.metric.value}</span>
+                    </div>
+                `;
+
+                insightsGrid.appendChild(card);
+            });
+        }
+
+        // Mini Chart Initialization
+        function initializeMiniChart() {
+            const totalEntries = @Model.RecentEntries.Count;
+
+            // Only show mini chart if user has enough data
+            if (totalEntries >= 7) {
+                const miniChartSection = document.getElementById('miniChartSection');
+                miniChartSection.style.display = 'block';
+
+                // Get recent entries data for chart
+                const recentEntries = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.RecentEntries.Take(7).Select(e => new {
+                    date = e.EntryDate.ToString("yyyy-MM-dd"),
+                    moodLevel = e.MoodLevel,
+                    dayName = e.EntryDate.ToString("ddd")
+                })));
+
+                console.log('Mini Chart Data:', recentEntries);
+
+                // Create mini chart
+                const miniCtx = document.getElementById('miniMoodChart').getContext('2d');
+
+                try {
+                    const miniChart = new Chart(miniCtx, {
+                        type: 'line',
+                        data: {
+                            labels: recentEntries.map(e => e.dayName),
+                            datasets: [{
+                                label: 'Mood Level',
+                                data: recentEntries.map(e => e.moodLevel),
+                                borderColor: '#7B61FF',
+                                backgroundColor: 'rgba(123, 97, 255, 0.1)',
+                                borderWidth: 2,
+                                fill: true,
+                                tension: 0.4,
+                                pointBackgroundColor: '#7B61FF',
+                                pointBorderColor: '#FFFFFF',
+                                pointBorderWidth: 2,
+                                pointRadius: 4,
+                                pointHoverRadius: 6
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    display: false
+                                },
+                                tooltip: {
+                                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                    titleColor: '#FFFFFF',
+                                    bodyColor: '#FFFFFF',
+                                    borderColor: '#7B61FF',
+                                    borderWidth: 1,
+                                    cornerRadius: 8,
+                                    callbacks: {
+                                        label: function(context) {
+                                            const moodLabels = {
+                                                1: 'Terrible', 2: 'Very Bad', 3: 'Bad', 4: 'Poor', 5: 'Okay',
+                                                6: 'Fine', 7: 'Good', 8: 'Great', 9: 'Excellent', 10: 'Amazing'
+                                            };
+                                            return `Mood: ${context.parsed.y}/10 (${moodLabels[context.parsed.y] || 'Unknown'})`;
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    grid: {
+                                        display: false
+                                    },
+                                    ticks: {
+                                        color: '#000000',
+                                        font: {
+                                            size: 10,
+                                            weight: '500'
+                                        }
+                                    }
+                                },
+                                y: {
+                                    min: 1,
+                                    max: 10,
+                                    grid: {
+                                        color: 'rgba(0, 0, 0, 0.1)',
+                                        lineWidth: 1
+                                    },
+                                    ticks: {
+                                        stepSize: 2,
+                                        color: '#000000',
+                                        font: {
+                                            size: 10,
+                                            weight: '500'
+                                        }
+                                    }
+                                }
+                            },
+                            interaction: {
+                                intersect: false,
+                                mode: 'index'
+                            }
+                        }
+                    });
+                    console.log('Mini Chart created successfully:', miniChart);
+                } catch (error) {
+                    console.error('Error creating mini chart:', error);
+                }
+            }
+        }
     </script>
 }

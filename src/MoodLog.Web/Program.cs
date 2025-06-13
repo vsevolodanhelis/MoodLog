@@ -44,6 +44,14 @@ builder.Services.AddScoped<IMoodTagService, MoodTagService>();
 builder.Services.AddScoped<IDataSeedingService, DataSeedingService>();
 builder.Services.AddScoped<IMoodPredictionService, MoodPredictionService>();
 builder.Services.AddScoped<IGamificationService, GamificationService>();
+builder.Services.AddScoped<MockDataService>();
+
+// Register new C# laboratory demonstration services
+builder.Services.AddScoped<MoodLog.Application.Services.Diagnostics.ISystemDiagnosticsService,
+    MoodLog.Application.Services.Diagnostics.SystemDiagnosticsService>();
+builder.Services.AddHttpClient<MoodLog.Application.Services.External.IWellnessQuoteService,
+    MoodLog.Application.Services.External.WellnessQuoteService>();
+builder.Services.AddScoped<MoodLog.Application.Services.Background.DataCleanupService>();
 
 // Register event system with delegates
 builder.Services.AddSingleton<IMoodEntryEventPublisher, MoodEntryEventPublisher>();

@@ -8,6 +8,15 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
     <link rel="stylesheet" href="~/css/design-system.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="~/manifest.json">
+    <meta name="theme-color" content="#7B61FF">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="MoodLog">
+    <link rel="apple-touch-icon" href="~/images/icon-192x192.png">
+
     @await RenderSectionAsync("Styles", required: false)
     <style>
         /* Additional Dashboard-specific Variables */
@@ -39,6 +48,20 @@
             line-height: 1.6;
             margin: 0;
             padding: 0;
+            position: relative;
+        }
+
+        /* Enhanced Background Pattern for Dashboard */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="dashboard-dots" width="25" height="25" patternUnits="userSpaceOnUse"><circle cx="12.5" cy="12.5" r="0.8" fill="white" opacity="0.08"/><circle cx="6.25" cy="6.25" r="0.4" fill="%237B61FF" opacity="0.03"/><circle cx="18.75" cy="18.75" r="0.4" fill="%237B61FF" opacity="0.03"/></pattern></defs><rect width="100" height="100" fill="url(%23dashboard-dots)"/></svg>');
+            pointer-events: none;
+            z-index: -1;
         }
         
         .dashboard-container {
@@ -102,9 +125,10 @@
         }
 
         .nav-divider {
-            height: 1px;
-            background: rgba(255, 255, 255, 0.1);
+            height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
             margin: 1rem 1.5rem;
+            border-radius: 1px;
         }
 
         .admin-link {
@@ -123,6 +147,25 @@
         .nav-link i {
             width: 20px;
             text-align: center;
+        }
+
+        /* Special styling for Admin Panel button */
+        .admin-panel-link {
+            background: rgba(139, 69, 19, 0.15) !important;
+            color: #d97706 !important;
+            border-left: 3px solid #d97706;
+            font-weight: 600;
+            margin: 0.5rem 0;
+        }
+
+        .admin-panel-link:hover {
+            background: rgba(139, 69, 19, 0.25) !important;
+            color: #b45309 !important;
+            transform: translateX(8px);
+        }
+
+        .admin-panel-link i {
+            color: #d97706;
         }
         
         .sidebar-footer {
@@ -179,6 +222,7 @@
             position: relative;
         }
 
+        /* Subtle overlay pattern for main content area */
         .main-content::before {
             content: '';
             position: absolute;
@@ -186,7 +230,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="dots" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="1" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23dots)"/></svg>');
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 60"><defs><pattern id="content-grid" width="60" height="60" patternUnits="userSpaceOnUse"><path d="M0 0h60v60H0z" fill="none"/><path d="M0 30h60M30 0v60" stroke="white" stroke-width="0.5" opacity="0.02"/></pattern></defs><rect width="100" height="100" fill="url(%23content-grid)"/></svg>');
             pointer-events: none;
             z-index: 0;
         }
@@ -196,6 +240,116 @@
             z-index: 1;
         }
         
+        /* Loading Spinner */
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            backdrop-filter: blur(5px);
+        }
+
+        .loading-overlay .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(123, 97, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--accent-primary);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        /* Skeleton Loading */
+        .skeleton {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+        }
+
+        .skeleton-text {
+            height: 1rem;
+            border-radius: 4px;
+            margin-bottom: 0.5rem;
+        }
+
+        .skeleton-text.short { width: 60%; }
+        .skeleton-text.medium { width: 80%; }
+        .skeleton-text.long { width: 100%; }
+
+        .skeleton-card {
+            height: 120px;
+            border-radius: var(--border-radius-lg);
+            margin-bottom: 1rem;
+        }
+
+        @@keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @@keyframes loading {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+
+        /* Smooth Transitions */
+        .page-transition {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+        }
+
+        .page-transition.loaded {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Micro-animations */
+        .bounce-in {
+            animation: bounceIn 0.6s ease;
+        }
+
+        @@keyframes bounceIn {
+            0% {
+                opacity: 0;
+                transform: scale(0.3);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1.05);
+            }
+            70% {
+                transform: scale(0.9);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease;
+        }
+
+        @@keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
         /* Mobile Responsive */
         @@media (max-width: 768px) {
             .sidebar {
@@ -231,9 +385,31 @@
             }
         }
         
+        /* Centered Content Layout */
+        .centered-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Responsive Design for Centered Content */
+        @@media (max-width: 768px) {
+            .centered-content,
+            .dashboard-content,
+            .analytics-content,
+            .history-content,
+            .mood-entries-index,
+            .settings-content {
+                padding: 1rem;
+                margin: 0 auto;
+            }
+        }
+
         /* Dashboard Specific Styles */
         .dashboard-content {
             max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
         }
         
         .today-mood-section {
@@ -502,6 +678,8 @@
         /* Analytics Styles */
         .analytics-content {
             max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
         }
 
         .stats-grid {
@@ -1322,6 +1500,313 @@
             cursor: not-allowed;
         }
 
+        /* ===== UNIFIED SAVE BUTTON SYSTEM ===== */
+        /* Override Bootstrap btn-primary with MoodLog brand styling */
+        .btn-primary,
+        .btn-save,
+        button[type="submit"].btn-primary,
+        input[type="submit"].btn-primary,
+        .btn.btn-primary {
+            background: var(--accent-primary, #7B61FF) !important;
+            border-color: var(--accent-primary, #7B61FF) !important;
+            color: white !important;
+            font-weight: 600 !important;
+            padding: 0.75rem 1.5rem !important;
+            border-radius: var(--border-radius, 20px) !important;
+            transition: all 0.3s ease !important;
+            text-decoration: none !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 0.5rem !important;
+            border: 2px solid var(--accent-primary, #7B61FF) !important;
+            box-shadow: 0 2px 8px rgba(123, 97, 255, 0.2) !important;
+        }
+
+        .btn-primary:hover,
+        .btn-save:hover,
+        button[type="submit"].btn-primary:hover,
+        input[type="submit"].btn-primary:hover,
+        .btn.btn-primary:hover {
+            background: var(--accent-hover, #6d4cff) !important;
+            border-color: var(--accent-hover, #6d4cff) !important;
+            color: white !important;
+            transform: translateY(-1px) !important;
+            box-shadow: 0 4px 16px rgba(123, 97, 255, 0.3) !important;
+            text-decoration: none !important;
+        }
+
+        .btn-primary:focus,
+        .btn-save:focus,
+        button[type="submit"].btn-primary:focus,
+        input[type="submit"].btn-primary:focus,
+        .btn.btn-primary:focus {
+            background: var(--accent-hover, #6d4cff) !important;
+            border-color: var(--accent-hover, #6d4cff) !important;
+            color: white !important;
+            box-shadow: 0 0 0 0.2rem rgba(123, 97, 255, 0.25) !important;
+            text-decoration: none !important;
+        }
+
+        .btn-primary:active,
+        .btn-save:active,
+        button[type="submit"].btn-primary:active,
+        input[type="submit"].btn-primary:active,
+        .btn.btn-primary:active {
+            background: var(--primary-dark, #5A3FFF) !important;
+            border-color: var(--primary-dark, #5A3FFF) !important;
+            color: white !important;
+            transform: translateY(0) !important;
+            box-shadow: 0 2px 8px rgba(123, 97, 255, 0.4) !important;
+        }
+
+        .btn-primary:disabled,
+        .btn-save:disabled,
+        button[type="submit"].btn-primary:disabled,
+        input[type="submit"].btn-primary:disabled,
+        .btn.btn-primary:disabled,
+        .btn-primary.disabled,
+        .btn-save.disabled {
+            background: #cccccc !important;
+            border-color: #cccccc !important;
+            color: #666666 !important;
+            opacity: 0.6 !important;
+            cursor: not-allowed !important;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
+        /* Specific styling for buttons with save icons */
+        .btn-primary .fas.fa-save,
+        .btn-save .fas.fa-save,
+        button[type="submit"] .fas.fa-save {
+            margin-right: 0.5rem;
+        }
+
+        /* Loading state for save buttons */
+        .btn-primary .fa-spinner,
+        .btn-save .fa-spinner,
+        button[type="submit"] .fa-spinner {
+            margin-right: 0.5rem;
+        }
+
+        /* Small save buttons */
+        .btn-primary.btn-sm,
+        .btn-save.btn-sm {
+            padding: 0.5rem 1rem !important;
+            font-size: 0.875rem !important;
+        }
+
+        /* Large save buttons */
+        .btn-primary.btn-lg,
+        .btn-save.btn-lg {
+            padding: 1rem 2rem !important;
+            font-size: 1.125rem !important;
+        }
+
+        /* ===== UNIFIED SAVE BUTTON SYSTEM ===== */
+        /* Override Bootstrap btn-primary with MoodLog brand styling */
+        .btn-primary,
+        .btn-save,
+        button[type="submit"].btn-primary,
+        input[type="submit"].btn-primary,
+        .btn.btn-primary {
+            background: var(--accent-primary, #7B61FF) !important;
+            border-color: var(--accent-primary, #7B61FF) !important;
+            color: white !important;
+            font-weight: 600 !important;
+            padding: 0.75rem 1.5rem !important;
+            border-radius: var(--border-radius, 20px) !important;
+            transition: all 0.3s ease !important;
+            text-decoration: none !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 0.5rem !important;
+            border: 2px solid var(--accent-primary, #7B61FF) !important;
+            box-shadow: 0 2px 8px rgba(123, 97, 255, 0.2) !important;
+        }
+
+        .btn-primary:hover,
+        .btn-save:hover,
+        button[type="submit"].btn-primary:hover,
+        input[type="submit"].btn-primary:hover,
+        .btn.btn-primary:hover {
+            background: var(--accent-hover, #6d4cff) !important;
+            border-color: var(--accent-hover, #6d4cff) !important;
+            color: white !important;
+            transform: translateY(-1px) !important;
+            box-shadow: 0 4px 16px rgba(123, 97, 255, 0.3) !important;
+            text-decoration: none !important;
+        }
+
+        .btn-primary:focus,
+        .btn-save:focus,
+        button[type="submit"].btn-primary:focus,
+        input[type="submit"].btn-primary:focus,
+        .btn.btn-primary:focus {
+            background: var(--accent-hover, #6d4cff) !important;
+            border-color: var(--accent-hover, #6d4cff) !important;
+            color: white !important;
+            box-shadow: 0 0 0 0.2rem rgba(123, 97, 255, 0.25) !important;
+            text-decoration: none !important;
+        }
+
+        .btn-primary:active,
+        .btn-save:active,
+        button[type="submit"].btn-primary:active,
+        input[type="submit"].btn-primary:active,
+        .btn.btn-primary:active {
+            background: var(--primary-dark, #5A3FFF) !important;
+            border-color: var(--primary-dark, #5A3FFF) !important;
+            color: white !important;
+            transform: translateY(0) !important;
+            box-shadow: 0 2px 8px rgba(123, 97, 255, 0.4) !important;
+        }
+
+        .btn-primary:disabled,
+        .btn-save:disabled,
+        button[type="submit"].btn-primary:disabled,
+        input[type="submit"].btn-primary:disabled,
+        .btn.btn-primary:disabled,
+        .btn-primary.disabled,
+        .btn-save.disabled {
+            background: #cccccc !important;
+            border-color: #cccccc !important;
+            color: #666666 !important;
+            opacity: 0.6 !important;
+            cursor: not-allowed !important;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
+        /* Specific styling for buttons with save icons */
+        .btn-primary .fas.fa-save,
+        .btn-save .fas.fa-save,
+        button[type="submit"] .fas.fa-save,
+        .btn-primary .fa-save,
+        .btn-save .fa-save {
+            margin-right: 0.5rem;
+        }
+
+        /* Loading state for save buttons */
+        .btn-primary .fa-spinner,
+        .btn-save .fa-spinner,
+        button[type="submit"] .fa-spinner {
+            margin-right: 0.5rem;
+        }
+
+        /* Small save buttons */
+        .btn-primary.btn-sm,
+        .btn-save.btn-sm {
+            padding: 0.5rem 1rem !important;
+            font-size: 0.875rem !important;
+        }
+
+        /* Large save buttons */
+        .btn-primary.btn-lg,
+        .btn-save.btn-lg {
+            padding: 1rem 2rem !important;
+            font-size: 1.125rem !important;
+        }
+
+        /* Ensure proper spacing for all FontAwesome icons in buttons */
+        .btn-primary i,
+        .btn-save i,
+        button[type="submit"] i {
+            margin-right: 0.5rem;
+        }
+
+        .btn-primary i:last-child,
+        .btn-save i:last-child,
+        button[type="submit"] i:last-child {
+            margin-right: 0;
+            margin-left: 0.5rem;
+        }
+
+        /* Outline primary buttons - maintain brand consistency */
+        .btn-outline-primary {
+            background: transparent !important;
+            border-color: var(--accent-primary, #7B61FF) !important;
+            color: var(--accent-primary, #7B61FF) !important;
+            font-weight: 600 !important;
+            padding: 0.75rem 1.5rem !important;
+            border-radius: var(--border-radius, 20px) !important;
+            transition: all 0.3s ease !important;
+            border: 2px solid var(--accent-primary, #7B61FF) !important;
+        }
+
+        .btn-outline-primary:hover,
+        .btn-outline-primary:focus {
+            background: var(--accent-primary, #7B61FF) !important;
+            border-color: var(--accent-primary, #7B61FF) !important;
+            color: white !important;
+            transform: translateY(-1px) !important;
+            box-shadow: 0 4px 16px rgba(123, 97, 255, 0.3) !important;
+        }
+
+        /* Ensure consistent styling for modal buttons */
+        .modal-footer .btn-primary,
+        .modal-footer .btn-save {
+            margin-left: 0.5rem;
+        }
+
+        /* Form action buttons spacing */
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            justify-content: flex-start;
+            margin-top: 1.5rem;
+        }
+
+        .form-actions .btn {
+            margin: 0;
+        }
+
+        /* Ensure consistent styling for all button variants */
+        .btn-primary.btn-sm,
+        .btn-primary.btn-lg,
+        .btn-save.btn-sm,
+        .btn-save.btn-lg,
+        button[type="submit"].btn-sm,
+        button[type="submit"].btn-lg {
+            font-weight: 600 !important;
+            border-radius: var(--border-radius, 20px) !important;
+        }
+
+        /* Override any conflicting Bootstrap styles */
+        .btn-primary:not(:disabled):not(.disabled):active,
+        .btn-primary:not(:disabled):not(.disabled).active,
+        .btn-save:not(:disabled):not(.disabled):active,
+        .btn-save:not(:disabled):not(.disabled).active {
+            background: var(--primary-dark, #5A3FFF) !important;
+            border-color: var(--primary-dark, #5A3FFF) !important;
+            color: white !important;
+        }
+
+        /* Ensure proper focus states for accessibility */
+        .btn-primary:focus-visible,
+        .btn-save:focus-visible,
+        button[type="submit"]:focus-visible {
+            outline: 2px solid var(--accent-primary, #7B61FF) !important;
+            outline-offset: 2px !important;
+        }
+
+        /* Loading state improvements */
+        .btn-primary.loading,
+        .btn-save.loading,
+        button[type="submit"].loading {
+            pointer-events: none;
+            opacity: 0.8;
+        }
+
+        .btn-primary.loading .fa-spinner,
+        .btn-save.loading .fa-spinner,
+        button[type="submit"].loading .fa-spinner {
+            animation: fa-spin 1s infinite linear;
+        }
+
         /* Success Modal Styles */
         .success-modal .modal-content {
             border: none;
@@ -1426,6 +1911,8 @@
         /* History Page Styles */
         .history-content {
             max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
         }
 
         .history-header {
@@ -1827,6 +2314,15 @@
         /* MoodEntries Index Styles */
         .mood-entries-index {
             max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Settings Page Styles */
+        .settings-content {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
         }
 
         .entries-header {
@@ -2060,23 +2556,18 @@
                         Settings
                     </a>
                 </div>
-                <div class="nav-item">
-                    <a href="@Url.Action("Index", "Seed")" class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Seed" ? "active" : "")">
-                        <i class="fas fa-database"></i>
-                        Demo Data
-                    </a>
-                </div>
 
                 @if (User.IsInRole("Admin"))
                 {
                     <div class="nav-divider"></div>
                     <div class="nav-item">
-                        <a href="@Url.Action("Index", "Admin")" class="nav-link admin-link">
+                        <a href="@Url.Action("Index", "Admin")" class="nav-link admin-panel-link">
                             <i class="fas fa-shield-alt"></i>
                             Admin Panel
                         </a>
                     </div>
                 }
+
             </div>
             
             <div class="sidebar-footer">
@@ -2136,9 +2627,411 @@
             }
         });
 
+        // Global Keyboard Shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Skip if user is typing in input fields (except for specific shortcuts)
+            const isInInputField = ['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName);
+            const isContentEditable = e.target.contentEditable === 'true';
+
+            // Ctrl+N - New Entry
+            if (e.ctrlKey && e.key === 'n') {
+                e.preventDefault();
+                window.location.href = '@Url.Action("Create", "MoodEntries")';
+                return;
+            }
+
+            // Ctrl+H - History
+            if (e.ctrlKey && e.key === 'h') {
+                e.preventDefault();
+                window.location.href = '@Url.Action("History", "MoodEntries")';
+                return;
+            }
+
+            // Ctrl+A - Analytics (when not in input field)
+            if (e.ctrlKey && e.key === 'a' && !isInInputField && !isContentEditable) {
+                e.preventDefault();
+                window.location.href = '@Url.Action("Analytics", "Dashboard")';
+                return;
+            }
+
+            // Ctrl+, - Settings
+            if (e.ctrlKey && e.key === ',') {
+                e.preventDefault();
+                window.location.href = '@Url.Action("Settings", "Dashboard")';
+                return;
+            }
+
+            // F1 or Ctrl+? - Show help
+            if (e.key === 'F1' || (e.ctrlKey && e.key === '?')) {
+                e.preventDefault();
+                showKeyboardShortcuts();
+                return;
+            }
+
+            // Escape - Close modals and forms
+            if (e.key === 'Escape') {
+                // Close modals first
+                const modals = document.querySelectorAll('.modal.show');
+                if (modals.length > 0) {
+                    modals.forEach(modal => {
+                        const bsModal = bootstrap.Modal.getInstance(modal);
+                        if (bsModal) bsModal.hide();
+                    });
+                    return;
+                }
+
+                // Close mood form on dashboard
+                const moodForm = document.getElementById('moodForm');
+                if (moodForm && moodForm.style.display !== 'none') {
+                    if (typeof cancelMood === 'function') {
+                        cancelMood();
+                    }
+                    return;
+                }
+            }
+
+            // Skip other shortcuts if in input fields
+            if (isInInputField || isContentEditable) return;
+
+            // M - Quick mood entry (Dashboard only)
+            if (e.key === 'm' || e.key === 'M') {
+                const emojiSelector = document.getElementById('emojiSelector');
+                if (emojiSelector && window.location.pathname === '/Dashboard') {
+                    e.preventDefault();
+                    // Focus on first mood button
+                    const firstMoodBtn = emojiSelector.querySelector('.emoji-btn');
+                    if (firstMoodBtn) {
+                        firstMoodBtn.focus();
+                        firstMoodBtn.classList.add('keyboard-focused');
+                    }
+                }
+                return;
+            }
+
+            // H - Navigate to History (alternative to Ctrl+H)
+            if (e.key === 'h' || e.key === 'H') {
+                e.preventDefault();
+                window.location.href = '@Url.Action("History", "MoodEntries")';
+                return;
+            }
+
+            // A - Navigate to Analytics (alternative to Ctrl+A)
+            if (e.key === 'a' || e.key === 'A') {
+                e.preventDefault();
+                window.location.href = '@Url.Action("Analytics", "Dashboard")';
+                return;
+            }
+
+            // S - Navigate to Settings
+            if (e.key === 's' || e.key === 'S') {
+                e.preventDefault();
+                window.location.href = '@Url.Action("Settings", "Dashboard")';
+                return;
+            }
+
+            // D - Navigate to Dashboard
+            if (e.key === 'd' || e.key === 'D') {
+                e.preventDefault();
+                window.location.href = '@Url.Action("Index", "Dashboard")';
+                return;
+            }
+
+            // Arrow key navigation for mood buttons
+            handleArrowKeyNavigation(e);
+        });
+
+        // Arrow key navigation for mood buttons and other elements
+        function handleArrowKeyNavigation(e) {
+            const focusedElement = document.activeElement;
+
+            // Navigation for mood buttons
+            if (focusedElement && focusedElement.classList.contains('emoji-btn')) {
+                const moodButtons = Array.from(document.querySelectorAll('.emoji-btn'));
+                const currentIndex = moodButtons.indexOf(focusedElement);
+
+                let nextIndex = currentIndex;
+
+                if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+                    nextIndex = currentIndex > 0 ? currentIndex - 1 : moodButtons.length - 1;
+                } else if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+                    nextIndex = currentIndex < moodButtons.length - 1 ? currentIndex + 1 : 0;
+                }
+
+                if (nextIndex !== currentIndex) {
+                    e.preventDefault();
+                    moodButtons.forEach(btn => btn.classList.remove('keyboard-focused'));
+                    moodButtons[nextIndex].focus();
+                    moodButtons[nextIndex].classList.add('keyboard-focused');
+                }
+
+                // Enter or Space to select mood
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    focusedElement.click();
+                }
+            }
+        }
+
+        // Enhanced keyboard shortcuts help with modal
+        function showKeyboardShortcuts() {
+            // Remove existing help modal if any
+            const existingModal = document.getElementById('keyboardHelpModal');
+            if (existingModal) {
+                existingModal.remove();
+            }
+
+            const shortcuts = [
+                { category: 'Navigation', items: [
+                    'Ctrl+N - New mood entry',
+                    'Ctrl+H or H - View history',
+                    'Ctrl+A or A - View analytics',
+                    'Ctrl+, or S - Settings',
+                    'D - Dashboard'
+                ]},
+                { category: 'Quick Actions', items: [
+                    'M - Quick mood entry (Dashboard)',
+                    'Ctrl+S - Save form (when editing)',
+                    'Enter - Submit/Select',
+                    'Escape - Close dialogs/forms'
+                ]},
+                { category: 'Mood Selection', items: [
+                    'Arrow Keys - Navigate mood options',
+                    'Enter/Space - Select mood',
+                    '1-5 or 1-10 - Quick mood selection'
+                ]},
+                { category: 'Help', items: [
+                    'F1 or Ctrl+? - Show this help',
+                    'Click keyboard icon - Show shortcuts'
+                ]}
+            ];
+
+            const modalHtml = `
+                <div class="modal fade" id="keyboardHelpModal" tabindex="-1">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content" style="background: var(--bg-primary); border: 2px solid var(--glass-border);">
+                            <div class="modal-header" style="border-bottom: 2px solid var(--glass-border);">
+                                <h5 class="modal-title" style="color: var(--text-primary);">
+                                    <i class="fas fa-keyboard me-2"></i>Keyboard Shortcuts
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="row">
+                                    ${shortcuts.map(section => `
+                                        <div class="col-md-6 mb-4">
+                                            <h6 style="color: var(--accent-primary); font-weight: 600; margin-bottom: 1rem;">
+                                                ${section.category}
+                                            </h6>
+                                            <div class="shortcut-list">
+                                                ${section.items.map(item => {
+                                                    const [shortcut, description] = item.split(' - ');
+                                                    return `
+                                                        <div class="shortcut-item" style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid var(--glass-border);">
+                                                            <span style="color: var(--text-secondary);">${description}</span>
+                                                            <kbd style="background: var(--accent-primary); color: white; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.8rem;">${shortcut}</kbd>
+                                                        </div>
+                                                    `;
+                                                }).join('')}
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                                <div class="text-center mt-3">
+                                    <small style="color: var(--text-secondary);">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Shortcuts work when not typing in input fields
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+            const modal = new bootstrap.Modal(document.getElementById('keyboardHelpModal'));
+            modal.show();
+
+            // Clean up when modal is hidden
+            document.getElementById('keyboardHelpModal').addEventListener('hidden.bs.modal', function() {
+                this.remove();
+            });
+        }
+
+        // Add keyboard shortcuts indicator
+        const shortcutsIndicator = document.createElement('div');
+        shortcutsIndicator.innerHTML = '<i class="fas fa-keyboard"></i>';
+        shortcutsIndicator.className = 'keyboard-shortcuts-indicator';
+        shortcutsIndicator.title = 'Click to view keyboard shortcuts';
+        shortcutsIndicator.onclick = showKeyboardShortcuts;
+        shortcutsIndicator.style.cssText = `
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            background: var(--accent-primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 1000;
+            box-shadow: var(--shadow-md);
+            transition: all var(--transition-normal);
+        `;
+        document.body.appendChild(shortcutsIndicator);
+
+        // Loading and Animation Functions
+        function showLoadingOverlay(message = 'Loading...') {
+            const overlay = document.createElement('div');
+            overlay.className = 'loading-overlay';
+            overlay.innerHTML = `
+                <div style="text-align: center;">
+                    <div class="spinner"></div>
+                    <div style="margin-top: 1rem; color: var(--text-primary); font-weight: 500;">${message}</div>
+                </div>
+            `;
+            overlay.id = 'loadingOverlay';
+            document.body.appendChild(overlay);
+        }
+
+        function hideLoadingOverlay() {
+            const overlay = document.getElementById('loadingOverlay');
+            if (overlay) {
+                overlay.style.opacity = '0';
+                setTimeout(() => overlay.remove(), 300);
+            }
+        }
+
+        function addLoadingToButton(button, text = 'Loading...') {
+            const originalText = button.innerHTML;
+            button.innerHTML = `<span class="loading-spinner"></span> ${text}`;
+            button.disabled = true;
+
+            return function() {
+                button.innerHTML = originalText;
+                button.disabled = false;
+            };
+        }
+
+        function createSkeletonCard() {
+            return `
+                <div class="skeleton skeleton-card"></div>
+                <div class="skeleton skeleton-text long"></div>
+                <div class="skeleton skeleton-text medium"></div>
+                <div class="skeleton skeleton-text short"></div>
+            `;
+        }
+
+        // Page transition effects
+        function initPageTransitions() {
+            const content = document.querySelector('.main-content');
+            if (content) {
+                content.classList.add('page-transition');
+                setTimeout(() => {
+                    content.classList.add('loaded');
+                }, 100);
+            }
+        }
+
+        // Initialize page transitions
+        document.addEventListener('DOMContentLoaded', function() {
+            initPageTransitions();
+
+            // Add bounce-in animation to cards
+            const cards = document.querySelectorAll('.card, .stat-card, .chart-card, .setting-item');
+            cards.forEach((card, index) => {
+                setTimeout(() => {
+                    card.classList.add('bounce-in');
+                }, index * 100);
+            });
+        });
+
+        // Enhanced form submission with loading
+        function enhanceFormSubmission() {
+            const forms = document.querySelectorAll('form');
+            forms.forEach(form => {
+                form.addEventListener('submit', function(e) {
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    if (submitBtn && !submitBtn.disabled) {
+                        addLoadingToButton(submitBtn, 'Saving...');
+                    }
+                });
+            });
+        }
+
+        enhanceFormSubmission();
 
     </script>
-    
+
+    <!-- PWA Service Worker Registration -->
+    <script>
+        let deferredPrompt;
+
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(function(registration) {
+                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                    })
+                    .catch(function(error) {
+                        console.log('ServiceWorker registration failed: ', error);
+                    });
+            });
+        }
+
+        // PWA Install Prompt
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+
+            // Show install button if not already installed
+            if (!window.matchMedia('(display-mode: standalone)').matches) {
+                showInstallPrompt();
+            }
+        });
+
+        function showInstallPrompt() {
+            const installBanner = document.createElement('div');
+            installBanner.id = 'pwa-install-banner';
+            installBanner.innerHTML = `
+                <div style="background: linear-gradient(135deg, #7B61FF, #667eea); color: white; padding: 12px 20px; position: fixed; top: 0; left: 0; right: 0; z-index: 9999; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <i class="fas fa-mobile-alt"></i>
+                        <span>Install MoodLog for a better experience!</span>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button onclick="installPWA()" style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 14px;">Install</button>
+                        <button onclick="dismissInstallPrompt()" style="background: transparent; border: 1px solid rgba(255,255,255,0.3); color: white; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 14px;">Later</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(installBanner);
+        }
+
+        function installPWA() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('User accepted the install prompt');
+                    }
+                    deferredPrompt = null;
+                    dismissInstallPrompt();
+                });
+            }
+        }
+
+        function dismissInstallPrompt() {
+            const banner = document.getElementById('pwa-install-banner');
+            if (banner) {
+                banner.remove();
+            }
+        }
+    </script>
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

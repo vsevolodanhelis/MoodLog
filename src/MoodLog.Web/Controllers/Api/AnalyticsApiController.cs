@@ -212,7 +212,21 @@ public class AnalyticsApiController : ControllerBase
     {
         var user = await _userManager.GetUserAsync(User);
         if (user == null) return null;
-        return int.TryParse(user.Id, out var id) ? id : user.Id.GetHashCode();
+        return GetConsistentIntegerFromGuid(user.Id);
+    }
+
+    private static int GetConsistentIntegerFromGuid(string guidString)
+    {
+        // Parse the GUID and use a consistent method to convert to integer
+        if (Guid.TryParse(guidString, out var guid))
+        {
+            // Use the first 4 bytes of the GUID to create a consistent integer
+            var bytes = guid.ToByteArray();
+            return Math.Abs(BitConverter.ToInt32(bytes, 0));
+        }
+
+        // Fallback to a consistent hash if not a valid GUID
+        return Math.Abs(guidString.GetHashCode(StringComparison.Ordinal));
     }
 
     private static string GetMoodCategory(int moodLevel) => moodLevel switch

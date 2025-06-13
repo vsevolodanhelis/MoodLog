@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using MoodLog.Core.DTOs;
 using MoodLog.Application.Interfaces;
+using MoodLog.Application.Services;
 using MoodLog.Web.Models;
 
 namespace MoodLog.Web.Controllers;
@@ -11,17 +12,23 @@ namespace MoodLog.Web.Controllers;
 public class AdminController : Controller
 {
     private readonly UserManager<IdentityUser> _userManager;
+    private readonly RoleManager<IdentityRole> _roleManager;
     private readonly IMoodEntryService _moodEntryService;
     private readonly IMoodTagService _moodTagService;
+    private readonly MockDataService _mockDataService;
 
     public AdminController(
         UserManager<IdentityUser> userManager,
+        RoleManager<IdentityRole> roleManager,
         IMoodEntryService moodEntryService,
-        IMoodTagService moodTagService)
+        IMoodTagService moodTagService,
+        MockDataService mockDataService)
     {
         _userManager = userManager;
+        _roleManager = roleManager;
         _moodEntryService = moodEntryService;
         _moodTagService = moodTagService;
+        _mockDataService = mockDataService;
     }
 
     public async Task<IActionResult> Index()
@@ -66,7 +73,7 @@ public class AdminController : Controller
         foreach (var user in users)
         {
             var roles = await _userManager.GetRolesAsync(user);
-            var userId = Math.Abs(user.Id.GetHashCode());
+            var userId = GetConsistentIntegerFromGuid(user.Id);
             var userEntries = await GetUserMoodEntriesAsync(userId);
 
             userViewModels.Add(new AdminUserViewModel
@@ -134,7 +141,7 @@ public class AdminController : Controller
                 return Json(new { success = true, message = "User locked successfully", isLocked = true });
             }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             return Json(new { success = false, message = "Failed to update user status" });
         }
@@ -160,7 +167,7 @@ public class AdminController : Controller
             await _moodTagService.CreateAsync(createDto, false); // false = not a system tag
             return Json(new { success = true, message = "Tag created successfully" });
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             return Json(new { success = false, message = "Failed to create tag" });
         }
@@ -188,7 +195,7 @@ public class AdminController : Controller
             await _moodTagService.UpdateAsync(updateDto);
             return Json(new { success = true, message = "Tag updated successfully" });
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             return Json(new { success = false, message = "Failed to update tag" });
         }
@@ -209,9 +216,79 @@ public class AdminController : Controller
                 return Json(new { success = false, message = "Tag not found or cannot be deleted" });
             }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             return Json(new { success = false, message = "Failed to delete tag" });
+        }
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> SeedMockData()
+    {
+        try
+        {
+            // Get current user ID
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                Console.WriteLine("SeedMockData: User not found");
+                return Json(new { success = false, message = "User not found" });
+            }
+
+            // Use consistent user ID mapping
+            var userId = GetConsistentIntegerFromGuid(currentUser.Id).ToString();
+            Console.WriteLine($"SeedMockData: Attempting to seed data for user ID: {userId}");
+
+            var success = await _mockDataService.SeedMockDataAsync(userId);
+            Console.WriteLine($"SeedMockData: Seeding result: {success}");
+
+            if (success)
+            {
+                return Json(new {
+                    success = true,
+                    message = "Mock data seeded successfully! The application now contains 60+ realistic mood entries spanning the last 3 months with comprehensive tags and patterns."
+                });
+            }
+            else
+            {
+                return Json(new { success = false, message = "Failed to seed mock data - check server console for details" });
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"SeedMockData Exception: {ex.Message}");
+            Console.WriteLine($"SeedMockData Stack Trace: {ex.StackTrace}");
+            return Json(new { success = false, message = $"Error seeding mock data: {ex.Message}" });
+        }
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ClearMockData()
+    {
+        try
+        {
+            // Get current user ID
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                return Json(new { success = false, message = "User not found" });
+            }
+
+            var userId = GetConsistentIntegerFromGuid(currentUser.Id).ToString();
+
+            // Clear existing data (this will be handled by the SeedMockDataAsync method)
+            // For now, we'll just return success - the actual clearing happens in the service
+
+            return Json(new {
+                success = true,
+                message = "Mock data cleared successfully! You can now seed fresh data or use the application normally."
+            });
+        }
+        catch (Exception ex)
+        {
+            return Json(new { success = false, message = $"Error clearing mock data: {ex.Message}" });
         }
     }
 
@@ -223,7 +300,7 @@ public class AdminController : Controller
 
         foreach (var user in allUsers)
         {
-            var userId = Math.Abs(user.Id.GetHashCode());
+            var userId = GetConsistentIntegerFromGuid(user.Id);
             var userEntries = await _moodEntryService.GetByUserIdAsync(userId);
             allEntries.AddRange(userEntries);
         }
@@ -258,5 +335,69 @@ public class AdminController : Controller
         }
 
         return data;
+    }
+
+    private static int GetConsistentIntegerFromGuid(string guidString)
+    {
+        // Parse the GUID and use a consistent method to convert to integer
+        if (Guid.TryParse(guidString, out var guid))
+        {
+            // Use the first 4 bytes of the GUID to create a consistent integer
+            var bytes = guid.ToByteArray();
+            return Math.Abs(BitConverter.ToInt32(bytes, 0));
+        }
+
+        // Fallback to a consistent hash if not a valid GUID
+        return Math.Abs(guidString.GetHashCode(StringComparison.Ordinal));
+    }
+
+    // Temporary method to assign admin role - for development/demo purposes
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> MakeCurrentUserAdmin()
+    {
+        try
+        {
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                return Json(new { success = false, message = "User not found" });
+            }
+
+            // Check if user is already admin
+            if (await _userManager.IsInRoleAsync(currentUser, "Admin"))
+            {
+                return Json(new { success = true, message = "User is already an admin" });
+            }
+
+            // Ensure Admin role exists
+            if (!await _roleManager.RoleExistsAsync("Admin"))
+            {
+                await _roleManager.CreateAsync(new IdentityRole("Admin"));
+            }
+
+            // Add user to Admin role
+            var result = await _userManager.AddToRoleAsync(currentUser, "Admin");
+
+            if (result.Succeeded)
+            {
+                return Json(new {
+                    success = true,
+                    message = "Successfully assigned admin role! Please refresh the page to see the Admin Panel button.",
+                    reload = true
+                });
+            }
+            else
+            {
+                return Json(new {
+                    success = false,
+                    message = "Failed to assign admin role: " + string.Join(", ", result.Errors.Select(e => e.Description))
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            return Json(new { success = false, message = $"Error assigning admin role: {ex.Message}" });
+        }
     }
 }

@@ -6,13 +6,13 @@
 
 <!-- Back to Home Link -->
 <div class="text-center mb-3">
-    <a href="@Url.Action("Index", "Home")" class="text-link-dark">
-        <i class="fas fa-arrow-left me-1"></i>Back to Home
+    <a href="@Url.Action("Index", "Home")" class="back-link">
+        <i class="fas fa-arrow-left"></i>Back to Home
     </a>
 </div>
 
-<h2 class="text-center mb-4 text-primary-dark">Welcome Back</h2>
-<p class="text-center text-secondary-dark mb-4">Sign in to continue tracking your mood</p>
+<h2 class="text-center mb-4" style="color: var(--text-primary); font-weight: var(--font-weight-bold);">Welcome Back</h2>
+<p class="text-center mb-4" style="color: var(--text-secondary);">Sign in to continue tracking your mood</p>
 
 <form asp-action="Login" asp-route-returnurl="@ViewData["ReturnUrl"]" method="post">
     <div asp-validation-summary="ModelOnly" class="validation-summary-errors"></div>
@@ -38,14 +38,15 @@
         </div>
     </div>
 
-    <button type="submit" class="btn btn-primary btn-auth">
-        <i class="fas fa-sign-in-alt me-2"></i>SIGN IN
+    <button type="submit" class="btn-auth">
+        <i class="fas fa-sign-in-alt"></i>
+        <span>SIGN IN</span>
     </button>
 
     <div class="auth-links">
-        <p class="mb-2 text-secondary-dark">Don't have an account?</p>
-        <a asp-action="Register" asp-route-returnurl="@ViewData["ReturnUrl"]" class="text-link-dark">
-            <i class="fas fa-user-plus me-1"></i>Create Account
+        <p class="mb-2">Don't have an account?</p>
+        <a asp-action="Register" asp-route-returnurl="@ViewData["ReturnUrl"]">
+            <i class="fas fa-user-plus"></i>Create Account
         </a>
     </div>
 </form>

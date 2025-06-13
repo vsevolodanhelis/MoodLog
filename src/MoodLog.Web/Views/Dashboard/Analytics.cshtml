@@ -4,7 +4,7 @@
     Layout = "_DashboardLayout";
 }
 
-<div class="analytics-content">
+<div class="analytics-content centered-content">
     <!-- Stats Overview -->
     <div class="stats-grid">
         <div class="stat-card">
@@ -101,7 +101,7 @@
             <div class="insights-grid">
                 <div class="insight-item">
                     <div class="insight-icon">
-                        <i class="fas fa-trending-up"></i>
+                        <i class="fas fa-chart-line"></i>
                     </div>
                     <div class="insight-content">
                         <h4>Mood Improvement</h4>
@@ -135,8 +135,10 @@
 
 <style>
 /* Analytics Page Styles with New Text Color System */
-.analytics-content {
+.centered-content {
     max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
 }
 
 .stats-grid {
@@ -381,80 +383,144 @@
 
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
     <script>
+        // Debug: Log chart data
+        console.log('Analytics Chart Debug: Starting chart initialization');
+
         // Mood Trend Chart
         const trendCtx = document.getElementById('moodTrendChart').getContext('2d');
-        const trendData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.MoodTrend.Select(t => new { 
-            x = t.Date.ToString("yyyy-MM-dd"), 
-            y = t.AverageMood 
+        const trendData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.MoodTrend.Select(t => new {
+            x = t.Date.ToString("yyyy-MM-dd"),
+            y = t.AverageMood
         })));
-        
-        new Chart(trendCtx, {
-            type: 'line',
-            data: {
-                datasets: [{
-                    label: 'Average Mood',
-                    data: trendData,
-                    borderColor: '#667eea',
-                    backgroundColor: 'rgba(102, 126, 234, 0.1)',
-                    borderWidth: 3,
-                    fill: true,
-                    tension: 0.4,
-                    pointBackgroundColor: '#667eea',
-                    pointBorderColor: getComputedStyle(document.documentElement).getPropertyValue('--text-on-primary') || '#fff',
-                    pointBorderWidth: 2,
-                    pointRadius: 6
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: false
-                    }
+
+        console.log('Trend Chart Data:', trendData);
+        console.log('Trend Chart Data Length:', trendData.length);
+
+        // Convert data to proper format for Chart.js
+        const processedTrendData = trendData.map(point => ({
+            x: point.x,
+            y: Math.round(point.y * 10) / 10 // Round to 1 decimal place
+        }));
+
+        console.log('Processed Trend Data:', processedTrendData);
+
+        try {
+            const trendChart = new Chart(trendCtx, {
+                type: 'line',
+                data: {
+                    datasets: [{
+                        label: 'Average Mood',
+                        data: processedTrendData,
+                        borderColor: '#7B61FF',
+                        backgroundColor: 'rgba(123, 97, 255, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#7B61FF',
+                        pointBorderColor: '#FFFFFF',
+                        pointBorderWidth: 2,
+                        pointRadius: 6,
+                        pointHoverRadius: 8
+                    }]
                 },
-                scales: {
-                    x: {
-                        type: 'time',
-                        time: {
-                            unit: 'day',
-                            displayFormats: {
-                                day: 'MMM dd'
-                            }
-                        },
-                        grid: {
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
                             display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleColor: '#FFFFFF',
+                            bodyColor: '#FFFFFF',
+                            borderColor: '#7B61FF',
+                            borderWidth: 1,
+                            cornerRadius: 8,
+                            callbacks: {
+                                title: function(context) {
+                                    return new Date(context[0].parsed.x).toLocaleDateString('en-US', {
+                                        weekday: 'short',
+                                        month: 'short',
+                                        day: 'numeric'
+                                    });
+                                },
+                                label: function(context) {
+                                    const moodLabels = {
+                                        1: 'Terrible', 2: 'Very Bad', 3: 'Bad', 4: 'Poor', 5: 'Okay',
+                                        6: 'Fine', 7: 'Good', 8: 'Great', 9: 'Excellent', 10: 'Amazing'
+                                    };
+                                    const roundedValue = Math.round(context.parsed.y);
+                                    return `Mood: ${context.parsed.y.toFixed(1)}/10 (${moodLabels[roundedValue] || 'Unknown'})`;
+                                }
+                            }
                         }
                     },
-                    y: {
-                        min: 1,
-                        max: 10, // Support both 1-5 and 1-10 scales
-                        ticks: {
-                            stepSize: 1,
-                            callback: function(value) {
-                                // Support both 5-point and 10-point scales
-                                const labels = {
-                                    1: 'Terrible', 2: 'Very Bad', 3: 'Bad', 4: 'Poor', 5: 'Okay',
-                                    6: 'Fine', 7: 'Good', 8: 'Great', 9: 'Excellent', 10: 'Amazing'
-                                };
-                                return labels[value] || value;
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: {
+                                unit: 'day',
+                                displayFormats: {
+                                    day: 'MMM dd'
+                                }
+                            },
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: '#000000',
+                                font: {
+                                    size: 12,
+                                    weight: '500'
+                                }
                             }
                         },
-                        grid: {
-                            color: 'rgba(0,0,0,0.1)'
+                        y: {
+                            min: 1,
+                            max: 10,
+                            ticks: {
+                                stepSize: 1,
+                                color: '#000000',
+                                font: {
+                                    size: 12,
+                                    weight: '500'
+                                },
+                                callback: function(value) {
+                                    const labels = {
+                                        1: 'Terrible', 2: 'Very Bad', 3: 'Bad', 4: 'Poor', 5: 'Okay',
+                                        6: 'Fine', 7: 'Good', 8: 'Great', 9: 'Excellent', 10: 'Amazing'
+                                    };
+                                    return `${value} - ${labels[value] || ''}`;
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.1)',
+                                lineWidth: 1
+                            }
                         }
+                    },
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
                     }
                 }
-            }
-        });
+            });
+            console.log('Trend Chart created successfully:', trendChart);
+        } catch (error) {
+            console.error('Error creating trend chart:', error);
+        }
 
         // Mood Distribution Chart
         const distributionCtx = document.getElementById('moodDistributionChart').getContext('2d');
         const distributionData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.MoodDistribution));
-        
+
+        console.log('Distribution Chart Data:', distributionData);
+
         const colors = {
-            // 10-point scale colors
+            // 10-point scale colors with MoodLog theme
             'Terrible': '#dc2626',
             'Very Bad': '#ef4444',
             'Bad': '#f97316',
@@ -466,33 +532,74 @@
             'Excellent': '#059669',
             'Amazing': '#047857'
         };
-        
-        new Chart(distributionCtx, {
-            type: 'doughnut',
-            data: {
-                labels: Object.keys(distributionData),
-                datasets: [{
-                    data: Object.values(distributionData),
-                    backgroundColor: Object.keys(distributionData).map(key => colors[key] || '#6b7280'),
-                    borderWidth: 0
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: false
-                    }
-                },
-                cutout: '60%'
-            }
-        });
 
-        // Set legend colors
+        try {
+            const distributionChart = new Chart(distributionCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(distributionData),
+                    datasets: [{
+                        data: Object.values(distributionData),
+                        backgroundColor: Object.keys(distributionData).map(key => colors[key] || '#6b7280'),
+                        borderWidth: 3,
+                        borderColor: '#FFFFFF',
+                        hoverBorderWidth: 4,
+                        hoverBorderColor: '#7B61FF'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleColor: '#FFFFFF',
+                            bodyColor: '#FFFFFF',
+                            borderColor: '#7B61FF',
+                            borderWidth: 1,
+                            cornerRadius: 8,
+                            callbacks: {
+                                label: function(context) {
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = Math.round((context.parsed / total) * 100);
+                                    return `${context.label}: ${context.parsed} entries (${percentage}%)`;
+                                }
+                            }
+                        }
+                    },
+                    cutout: '60%',
+                    interaction: {
+                        intersect: false
+                    }
+                }
+            });
+            console.log('Distribution Chart created successfully:', distributionChart);
+        } catch (error) {
+            console.error('Error creating distribution chart:', error);
+        }
+
+        // Set legend colors with enhanced styling
         document.querySelectorAll('.legend-color').forEach(el => {
             const mood = el.getAttribute('data-mood');
             el.style.backgroundColor = colors[mood] || '#6b7280';
+            el.style.borderRadius = '50%';
+            el.style.width = '12px';
+            el.style.height = '12px';
+            el.style.display = 'inline-block';
+            el.style.marginRight = '8px';
         });
+
+        // Add period filter functionality
+        document.getElementById('trendPeriod').addEventListener('change', function(e) {
+            const period = e.target.value;
+            console.log('Period changed to:', period);
+            // TODO: Implement dynamic period filtering
+            showNotification('Period filtering will be implemented in a future update', 'info');
+        });
+
+        console.log('Analytics charts initialization completed');
     </script>
 }
