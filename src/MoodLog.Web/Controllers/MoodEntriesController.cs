@@ -149,6 +149,27 @@ public class MoodEntriesController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(MoodEntryViewModel model)
     {
+        Console.WriteLine("=== CREATE MOOD ENTRY REQUEST ===");
+        Console.WriteLine($"MoodLevel: {model.MoodLevel}");
+        Console.WriteLine($"Notes: {model.Notes}");
+        Console.WriteLine($"EntryDate: {model.EntryDate}");
+        Console.WriteLine($"Symptoms: {model.Symptoms}");
+        Console.WriteLine($"SelectedTagIds: [{string.Join(", ", model.SelectedTagIds)}]");
+        Console.WriteLine($"ModelState.IsValid: {ModelState.IsValid}");
+
+        if (!ModelState.IsValid)
+        {
+            Console.WriteLine("=== MODEL VALIDATION ERRORS ===");
+            foreach (var error in ModelState)
+            {
+                Console.WriteLine($"Key: {error.Key}");
+                foreach (var errorMessage in error.Value.Errors)
+                {
+                    Console.WriteLine($"  Error: {errorMessage.ErrorMessage}");
+                }
+            }
+        }
+
         if (ModelState.IsValid)
         {
             var userId = await GetCurrentUserIdAsync();
@@ -159,10 +180,10 @@ public class MoodEntriesController : Controller
                 var dto = new MoodEntryCreateDto
                 {
                     MoodLevel = model.MoodLevel,
-                    Notes = model.Notes,
-                    Symptoms = model.Symptoms,
+                    Notes = model.Notes ?? string.Empty,
+                    Symptoms = model.Symptoms ?? string.Empty,
                     EntryDate = model.EntryDate,
-                    TagIds = model.SelectedTagIds
+                    TagIds = model.SelectedTagIds ?? new List<int>()
                 };
 
                 await _moodEntryService.CreateAsync(dto, userId.Value);
@@ -173,6 +194,17 @@ public class MoodEntriesController : Controller
             {
                 ModelState.AddModelError("", ex.Message);
             }
+            catch (ArgumentException ex)
+            {
+                ModelState.AddModelError("", ex.Message);
+            }
+            catch (Exception ex)
+            {
+                // Log the error for debugging
+                Console.WriteLine($"Error creating mood entry: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                ModelState.AddModelError("", "An unexpected error occurred while saving your mood entry. Please try again.");
+            }
         }
 
         // Reload tags if validation fails
@@ -180,6 +212,26 @@ public class MoodEntriesController : Controller
         model.AvailableTags = tags.ToList();
         
         return View(model);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> TestCreate([FromForm] string moodLevel, [FromForm] string notes, [FromForm] string entryDate)
+    {
+        Console.WriteLine("=== TEST CREATE ENDPOINT ===");
+        Console.WriteLine($"Raw MoodLevel: '{moodLevel}'");
+        Console.WriteLine($"Raw Notes: '{notes}'");
+        Console.WriteLine($"Raw EntryDate: '{entryDate}'");
+        Console.WriteLine($"Request Content-Type: {Request.ContentType}");
+        Console.WriteLine($"Request Method: {Request.Method}");
+
+        // Log all form data
+        Console.WriteLine("=== ALL FORM DATA ===");
+        foreach (var item in Request.Form)
+        {
+            Console.WriteLine($"{item.Key}: {item.Value}");
+        }
+
+        return Json(new { success = true, message = "Test endpoint reached successfully", data = new { moodLevel, notes, entryDate } });
     }
 
     public async Task<IActionResult> Edit(int id)

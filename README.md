@@ -19,7 +19,7 @@ A comprehensive mental wellness platform built with ASP.NET Core, featuring AI-p
 ### Technical Features
 - **REST API** - Complete API endpoints for all functionality
 - **Event-Driven Architecture** - C# delegates for audit logging and notifications
-- **Unit Testing** - 82 comprehensive unit tests with full business logic coverage
+- **Unit Testing** - 112 comprehensive unit tests with full business logic coverage
 - **Swagger Documentation** - Interactive API documentation
 - **Identity Management** - Multi-user authentication with role-based access
 
@@ -87,7 +87,7 @@ dotnet test
 ```
 
 **Test Coverage:**
-- 82 unit tests
+- 112 unit tests
 - Full business logic coverage
 - Event system testing
 - API endpoint validation

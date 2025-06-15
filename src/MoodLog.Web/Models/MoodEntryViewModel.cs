@@ -13,10 +13,10 @@ public class MoodEntryViewModel
     public int MoodLevel { get; set; }
     
     [StringLength(1000, ErrorMessage = "Notes cannot exceed 1000 characters")]
-    public string Notes { get; set; } = string.Empty;
+    public string? Notes { get; set; } = string.Empty;
     
     [StringLength(500, ErrorMessage = "Symptoms cannot exceed 500 characters")]
-    public string Symptoms { get; set; } = string.Empty;
+    public string? Symptoms { get; set; } = string.Empty;
     
     [Required]
     [Display(Name = "Entry Date")]
@@ -24,7 +24,7 @@ public class MoodEntryViewModel
     public DateTime EntryDate { get; set; } = DateTime.Today;
     
     [Display(Name = "Tags")]
-    public List<int> SelectedTagIds { get; set; } = new List<int>();
+    public List<int>? SelectedTagIds { get; set; } = new List<int>();
     
     public List<MoodTagDto> AvailableTags { get; set; } = new List<MoodTagDto>();
     

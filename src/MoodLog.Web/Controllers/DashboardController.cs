@@ -65,6 +65,13 @@ public class DashboardController : Controller
         try
         {
             var today = DateTime.Today;
+
+            // Ensure we're working with today's date only (safety check)
+            if (today != DateTime.Today)
+            {
+                return Json(new { success = false, message = "Date validation error. Please refresh and try again." });
+            }
+
             var existingEntry = await _moodEntryService.GetByDateAsync(userId.Value, today);
 
             if (existingEntry != null)
@@ -76,7 +83,7 @@ public class DashboardController : Controller
                     MoodLevel = moodLevel,
                     Notes = notes ?? string.Empty,
                     Symptoms = string.Empty,
-                    TagIds = new List<int>() // For now, we'll handle tags separately
+                    TagIds = ParseTagIds(tags)
                 };
 
                 var updatedEntry = await _moodEntryService.UpdateAsync(updateDto, userId.Value);
@@ -91,7 +98,7 @@ public class DashboardController : Controller
                     Notes = notes ?? string.Empty,
                     Symptoms = string.Empty,
                     EntryDate = today,
-                    TagIds = new List<int>() // For now, we'll handle tags separately
+                    TagIds = ParseTagIds(tags)
                 };
 
                 var newEntry = await _moodEntryService.CreateAsync(createDto, userId.Value);
@@ -110,6 +117,12 @@ public class DashboardController : Controller
             Console.WriteLine($"Authorization error logging mood: {ex.Message}");
             return Json(new { success = false, message = "Access denied" });
         }
+        catch (ArgumentException ex)
+        {
+            // Handle validation errors
+            Console.WriteLine($"Validation error logging mood: {ex.Message}");
+            return Json(new { success = false, message = ex.Message });
+        }
         catch (Exception ex)
         {
             // Log the actual error for debugging
@@ -121,6 +134,23 @@ public class DashboardController : Controller
             Console.WriteLine($"Tags: {tags ?? "null"}");
 
             return Json(new { success = false, message = "An unexpected error occurred. Please try again." });
+        }
+    }
+
+    private static List<int> ParseTagIds(string? tags)
+    {
+        if (string.IsNullOrWhiteSpace(tags))
+            return new List<int>();
+
+        try
+        {
+            return tags.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                      .Select(tag => int.Parse(tag.Trim()))
+                      .ToList();
+        }
+        catch
+        {
+            return new List<int>();
         }
     }
 

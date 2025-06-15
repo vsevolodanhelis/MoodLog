@@ -14,9 +14,10 @@
                 <p class="mood-date">@DateTime.Today.ToString("dddd, MMMM dd, yyyy")</p>
             </div>
             
+            <!-- Today's Entry Display (when entry exists) -->
             @if (Model.HasTodayEntry)
             {
-                <div class="current-mood">
+                <div class="current-mood" id="todayEntryDisplay">
                     <div class="mood-display">
                         <div class="mood-emoji">@GetMoodEmoji(Model.TodayEntry!.MoodLevel)</div>
                         <div class="mood-info">
@@ -41,44 +42,43 @@
                     </button>
                 </div>
             }
-            else
-            {
-                <div class="mood-picker" id="moodPicker">
-                    <div class="emoji-selector" id="emojiSelector">
-                        <!-- Mood buttons will be dynamically generated based on settings -->
+
+            <!-- Mood Entry Form (always present, hidden when not needed) -->
+            <div class="mood-picker" id="moodPicker" style="@(Model.HasTodayEntry ? "display: none;" : "")">
+                <div class="emoji-selector" id="emojiSelector">
+                    <!-- Mood buttons will be dynamically generated based on settings -->
+                </div>
+
+                <div class="mood-form" id="moodForm" style="display: none;">
+                    <div class="form-group">
+                        <label for="moodNotes" class="form-label">Notes (optional)</label>
+                        <textarea id="moodNotes" class="form-control" rows="3" placeholder="How was your day? What affected your mood?"></textarea>
                     </div>
-                    
-                    <div class="mood-form" id="moodForm" style="display: none;">
-                        <div class="form-group">
-                            <label for="moodNotes" class="form-label">Notes (optional)</label>
-                            <textarea id="moodNotes" class="form-control" rows="3" placeholder="How was your day? What affected your mood?"></textarea>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="moodTags" class="form-label">Tags (optional)</label>
-                            <div class="tag-selection-container">
-                                <div class="predefined-tags" id="predefinedTags">
-                                    <!-- Predefined tags will be loaded here -->
-                                </div>
-                                <div class="selected-tags-display" id="selectedTagsDisplay">
-                                    <!-- Selected tags will appear here -->
-                                </div>
-                                <input type="text" id="moodTags" class="form-control mt-2" placeholder="Add custom tags (comma-separated)" style="display: none;">
-                                <button type="button" class="btn btn-link btn-sm mt-1" id="toggleCustomTags">
-                                    <i class="fas fa-plus me-1"></i>Add custom tags
-                                </button>
+
+                    <div class="form-group">
+                        <label for="moodTags" class="form-label">Tags (optional)</label>
+                        <div class="tag-selection-container">
+                            <div class="predefined-tags" id="predefinedTags">
+                                <!-- Predefined tags will be loaded here -->
                             </div>
-                        </div>
-                        
-                        <div class="form-actions">
-                            <button type="button" class="btn btn-primary" onclick="saveMood()">
-                                <i class="fas fa-save me-1"></i>Save Mood
+                            <div class="selected-tags-display" id="selectedTagsDisplay">
+                                <!-- Selected tags will appear here -->
+                            </div>
+                            <input type="text" id="moodTags" class="form-control mt-2" placeholder="Add custom tags (comma-separated)" style="display: none;">
+                            <button type="button" class="btn btn-link btn-sm mt-1" id="toggleCustomTags">
+                                <i class="fas fa-plus me-1"></i>Add custom tags
                             </button>
-                            <button type="button" class="btn btn-secondary" onclick="cancelMood()">Cancel</button>
                         </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-primary" onclick="saveMood()">
+                            <i class="fas fa-save me-1"></i>Save Mood
+                        </button>
+                        <button type="button" class="btn btn-secondary" onclick="cancelMood()">Cancel</button>
                     </div>
                 </div>
-            }
+            </div>
         </div>
     </div>
 
@@ -874,12 +874,6 @@
                 return;
             }
 
-            // Validate mood level
-            if (selectedMood < 1 || selectedMood > 10) {
-                showMessage('Invalid mood level selected', '#ef4444', 3000);
-                return;
-            }
-
             const notes = document.getElementById('moodNotes').value;
 
             // Get all tags (predefined + custom)
@@ -977,13 +971,27 @@
                     // Show success message
                     showSuccessMessage(message);
 
-                    // Reset form and reload page after a short delay
-                    setTimeout(() => {
-                        location.reload();
-                    }, 1000);
+                    // Update the display without page reload
+                    updateMoodDisplay(selectedMood, document.getElementById('moodNotes').value);
+
+                    // Reset form state
+                    resetMoodForm();
                 } else {
                     console.error('Request failed:', data.message);
-                    showMessage(data.message || 'Failed to save mood entry', '#ef4444', 3000);
+
+                    // Show specific error message from server
+                    let errorMessage = data.message || 'Failed to save mood entry';
+
+                    // Add helpful context for common errors
+                    if (errorMessage.includes('already exists')) {
+                        errorMessage += ' Try updating your existing entry instead.';
+                    } else if (errorMessage.includes('Mood level')) {
+                        errorMessage += ' Please select a valid mood level (1-10).';
+                    } else if (errorMessage.includes('authenticated')) {
+                        errorMessage += ' Please refresh the page and try again.';
+                    }
+
+                    showMessage(errorMessage, '#ef4444', 5000);
                 }
             })
             .catch(error => {
@@ -1022,6 +1030,26 @@
             document.getElementById('moodTags').value = '';
             updateTagButtons();
             renderSelectedTags();
+
+            // If we have a today entry, restore the display and hide the picker
+            const hasEntry = @(Model.HasTodayEntry ? "true" : "false");
+            if (hasEntry) {
+                const todayEntryDisplay = document.getElementById('todayEntryDisplay');
+                const moodPicker = document.getElementById('moodPicker');
+
+                if (todayEntryDisplay) {
+                    todayEntryDisplay.style.display = 'block';
+                }
+                if (moodPicker) {
+                    moodPicker.style.display = 'none';
+                }
+
+                // Reset save button text
+                const saveButton = document.querySelector('#moodForm .btn-primary');
+                if (saveButton) {
+                    saveButton.innerHTML = '<i class="fas fa-save me-1"></i>Save Mood';
+                }
+            }
         }
         
         function editTodayMood() {
@@ -1041,6 +1069,24 @@
                 return;
             }
 
+            // Hide the current mood display
+            const todayEntryDisplay = document.getElementById('todayEntryDisplay');
+            if (todayEntryDisplay) {
+                todayEntryDisplay.style.display = 'none';
+                console.log('Today entry display hidden');
+            }
+
+            // Show the mood picker
+            const moodPicker = document.getElementById('moodPicker');
+            if (moodPicker) {
+                moodPicker.style.display = 'block';
+                console.log('Mood picker displayed');
+            } else {
+                console.error('Mood picker element not found!');
+                showMessage('Form error: Unable to display mood picker', '#ef4444', 3000);
+                return;
+            }
+
             // Set the current mood as selected
             selectedMood = currentMoodLevel;
 
@@ -1053,6 +1099,7 @@
                 const currentButton = document.querySelector(`[data-mood="${currentMoodLevel}"]`);
                 if (currentButton) {
                     currentButton.classList.add('selected');
+                    console.log(`Mood button ${currentMoodLevel} selected`);
                 }
             }
 
@@ -1087,10 +1134,13 @@
             }
 
             // Scroll to mood selection
-            document.querySelector('.mood-selection').scrollIntoView({
-                behavior: 'smooth',
-                block: 'center'
-            });
+            const moodSection = document.querySelector('.mood-selection') || document.querySelector('#moodPicker');
+            if (moodSection) {
+                moodSection.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center'
+                });
+            }
         }
 
         function showMessage(text, backgroundColor = '#667eea', duration = 2000) {
@@ -1459,6 +1509,78 @@
             clearTimeout(window.autoSaveTimeout);
 
             showMessage('Mood selection cleared', '#6b7280', 2000);
+        }
+
+        function updateMoodDisplay(moodLevel, notes) {
+            console.log('Updating mood display:', moodLevel, notes);
+
+            // Get mood emoji and text
+            const moodEmoji = getMoodEmoji(moodLevel);
+            const moodText = getMoodText(moodLevel);
+
+            // Update the today entry display
+            const todayEntryDisplay = document.getElementById('todayEntryDisplay');
+            if (todayEntryDisplay) {
+                todayEntryDisplay.innerHTML = `
+                    <div class="mood-display">
+                        <div class="mood-emoji">${moodEmoji}</div>
+                        <div class="mood-info">
+                            <div class="mood-level">${moodText}</div>
+                            <div class="mood-notes">${notes || ''}</div>
+                            <div class="mood-time">Updated just now</div>
+                        </div>
+                    </div>
+                    <button class="btn btn-outline-primary btn-sm" onclick="editTodayMood()">
+                        <i class="fas fa-edit me-1"></i>Update
+                    </button>
+                `;
+                todayEntryDisplay.style.display = 'block';
+            }
+
+            // Hide the mood picker
+            const moodPicker = document.getElementById('moodPicker');
+            if (moodPicker) {
+                moodPicker.style.display = 'none';
+            }
+        }
+
+        function resetMoodForm() {
+            console.log('Resetting mood form');
+
+            // Reset form state
+            selectedMood = 0;
+            selectedTags = [];
+
+            // Clear form inputs
+            document.getElementById('moodNotes').value = '';
+            document.getElementById('moodTags').value = '';
+
+            // Remove selected states
+            document.querySelectorAll('.emoji-btn').forEach(b => b.classList.remove('selected'));
+
+            // Hide form
+            document.getElementById('moodForm').style.display = 'none';
+
+            // Reset button text
+            const saveButton = document.querySelector('#moodForm .btn-primary');
+            if (saveButton) {
+                saveButton.innerHTML = '<i class="fas fa-save me-1"></i>Save Mood';
+                saveButton.disabled = false;
+            }
+
+            // Update tag display
+            updateTagButtons();
+            renderSelectedTags();
+        }
+
+        function getMoodEmoji(moodLevel) {
+            const emojis = ['', '😢', '😟', '😐', '🙂', '😊', '😄', '😁', '🤩', '😍', '🥳'];
+            return emojis[moodLevel] || '😐';
+        }
+
+        function getMoodText(moodLevel) {
+            const texts = ['', 'Very Bad', 'Bad', 'Poor', 'Fair', 'Okay', 'Good', 'Great', 'Excellent', 'Amazing', 'Fantastic'];
+            return texts[moodLevel] || 'Unknown';
         }
 
         // Helper functions for achievement calculations
