@@ -40,6 +40,9 @@ public class MoodTagService : IMoodTagService
 
     public async Task<MoodTagDto> CreateAsync(MoodTagCreateDto dto, bool isSystemTag = false)
     {
+        // Validate input
+        ValidateTagInput(dto.Name, dto.Color);
+
         // Check if tag with same name already exists
         var existingTag = await _unitOfWork.MoodTags.GetByNameAsync(dto.Name);
         if (existingTag != null)
@@ -65,8 +68,11 @@ public class MoodTagService : IMoodTagService
 
     public async Task<MoodTagDto> UpdateAsync(MoodTagUpdateDto dto)
     {
+        // Validate input
+        ValidateTagInput(dto.Name, dto.Color);
+
         var tag = await _unitOfWork.MoodTags.GetByIdAsync(dto.Id);
-        
+
         if (tag == null)
             throw new ArgumentException("Tag not found");
 
@@ -114,6 +120,33 @@ public class MoodTagService : IMoodTagService
     {
         var tag = await _unitOfWork.MoodTags.GetByNameAsync(name);
         return tag != null;
+    }
+
+    private static void ValidateTagInput(string name, string color)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            throw new ArgumentException("Tag name cannot be empty");
+        }
+
+        if (!IsValidHexColor(color))
+        {
+            throw new ArgumentException("Invalid color format. Must be a valid hex color (e.g., #FF0000)");
+        }
+    }
+
+    private static bool IsValidHexColor(string color)
+    {
+        if (string.IsNullOrWhiteSpace(color))
+            return false;
+
+        if (!color.StartsWith("#"))
+            return false;
+
+        if (color.Length != 7)
+            return false;
+
+        return color[1..].All(c => char.IsDigit(c) || (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f'));
     }
 
     private static MoodTagDto MapToDto(MoodTag tag)

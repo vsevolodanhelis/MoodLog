@@ -1,4 +1,5 @@
-﻿using MoodLog.Core.Entities;
+﻿using FluentAssertions;
+using MoodLog.Core.Entities;
 using System.ComponentModel.DataAnnotations;
 
 namespace MoodLog.Core.Tests;

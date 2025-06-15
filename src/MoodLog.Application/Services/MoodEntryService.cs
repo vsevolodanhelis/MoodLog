@@ -53,6 +53,12 @@ public class MoodEntryService : IMoodEntryService
 
     public async Task<MoodEntryDto> CreateAsync(MoodEntryCreateDto dto, int userId)
     {
+        // Validate mood level
+        if (dto.MoodLevel < 1 || dto.MoodLevel > 10)
+        {
+            throw new ArgumentException("Mood level must be between 1 and 10");
+        }
+
         // Check if entry already exists for this date
         var existingEntry = await _unitOfWork.MoodEntries.GetByUserIdAndDateAsync(userId, dto.EntryDate);
         if (existingEntry != null)
@@ -86,8 +92,14 @@ public class MoodEntryService : IMoodEntryService
 
     public async Task<MoodEntryDto> UpdateAsync(MoodEntryUpdateDto dto, int userId)
     {
+        // Validate mood level
+        if (dto.MoodLevel < 1 || dto.MoodLevel > 10)
+        {
+            throw new ArgumentException("Mood level must be between 1 and 10");
+        }
+
         var entry = await _unitOfWork.MoodEntries.GetByIdAsync(dto.Id);
-        
+
         if (entry == null || entry.UserId != userId)
             throw new UnauthorizedAccessException("Entry not found or access denied");
 
@@ -175,11 +187,12 @@ public class MoodEntryService : IMoodEntryService
         {
             Id = entry.Id,
             MoodLevel = entry.MoodLevel,
-            Notes = entry.Notes,
-            Symptoms = entry.Symptoms,
+            Notes = entry.Notes ?? string.Empty,
+            Symptoms = entry.Symptoms ?? string.Empty,
             EntryDate = entry.EntryDate,
-            TagIds = entry.MoodEntryTags.Select(met => met.MoodTagId).ToList(),
-            TagNames = entry.MoodEntryTags.Select(met => met.MoodTag.Name).ToList()
+            TagIds = entry.MoodEntryTags?.Select(met => met.MoodTagId).ToList() ?? new List<int>(),
+            TagNames = entry.MoodEntryTags?.Where(met => met.MoodTag != null)
+                .Select(met => met.MoodTag.Name).ToList() ?? new List<string>()
         };
     }
 }

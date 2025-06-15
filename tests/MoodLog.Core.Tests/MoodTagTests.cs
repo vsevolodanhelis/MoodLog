@@ -1,3 +1,4 @@
+using FluentAssertions;
 using MoodLog.Core.Entities;
 using System.ComponentModel.DataAnnotations;
 
