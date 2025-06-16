@@ -59,3 +59,40 @@ public class MoodEntryUpdateDto
     
     public List<int> TagIds { get; set; } = new List<int>();
 }
+
+public class MoodAnalyticsDto
+{
+    public double AverageMood { get; set; }
+    public int TotalEntries { get; set; }
+    public string MoodTrend { get; set; } = string.Empty;
+    public Core.Entities.MoodEntry? BestDay { get; set; }
+    public Core.Entities.MoodEntry? WorstDay { get; set; }
+    public int MostCommonMood { get; set; }
+    public Dictionary<int, int> MoodDistribution { get; set; } = new();
+    public List<WeeklyMoodDto> WeeklyAverages { get; set; } = new();
+    public List<string> Insights { get; set; } = new();
+}
+
+public class WeeklyMoodDto
+{
+    public DateTime WeekStart { get; set; }
+    public DateTime WeekEnd { get; set; }
+    public double AverageMood { get; set; }
+    public int EntryCount { get; set; }
+}
+
+public class MoodStreakDto
+{
+    public DateTime StartDate { get; set; }
+    public DateTime EndDate { get; set; }
+    public string Type { get; set; } = string.Empty; // "Positive", "Negative", "Neutral"
+    public int Count { get; set; }
+}
+
+public class MoodPatternDto
+{
+    public string PatternType { get; set; } = string.Empty; // "DayOfWeek", "Month", etc.
+    public string PatternName { get; set; } = string.Empty;
+    public double AverageMood { get; set; }
+    public int EntryCount { get; set; }
+}

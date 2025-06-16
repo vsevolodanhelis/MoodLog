@@ -108,9 +108,6 @@
                 <button type="submit" class="btn btn-primary btn-save" disabled>
                     <i class="fas fa-save me-2"></i>Save Mood Entry
                 </button>
-                <button type="button" class="btn btn-warning btn-test" onclick="testFormSubmission()">
-                    <i class="fas fa-bug me-2"></i>Test Form
-                </button>
             </div>
         </form>
     </div>
@@ -281,11 +278,7 @@
         document.getElementById('moodEntryForm').addEventListener('submit', function(e) {
             e.preventDefault();
 
-            console.log('=== MAIN FORM SUBMISSION STARTED ===');
-            console.log('Selected mood:', selectedMood);
-
             if (selectedMood === 0) {
-                console.error('No mood selected');
                 showMessage('Please select a mood first', '#ef4444', 3000);
                 return;
             }
@@ -320,24 +313,15 @@
 
             formData.append('__RequestVerificationToken', document.querySelector('input[name="__RequestVerificationToken"]').value);
 
-            console.log('Form data being sent:');
-            console.log('- MoodLevel:', selectedMood);
-            console.log('- Notes:', notesTextarea.value || '');
-            console.log('- EntryDate:', entryDate);
-            console.log('- SelectedTags:', selectedTags);
-            console.log('- Intensity:', selectedIntensity);
+
 
             fetch('@Url.Action("Create", "MoodEntries")', {
                 method: 'POST',
                 body: formData
             })
             .then(response => {
-                console.log('Response status:', response.status);
-                console.log('Response headers:', response.headers);
-
                 if (response.redirected) {
                     // Success - redirected to dashboard
-                    console.log('Success! Redirected to:', response.url);
                     showSuccessModal();
                     return;
                 }
@@ -350,8 +334,6 @@
             })
             .then(html => {
                 if (!html) return; // Already handled redirect case
-
-                console.log('Received HTML response, checking for errors...');
 
                 // Check if response contains validation errors
                 if (html.includes('field-validation-error') || html.includes('validation-summary-errors') || html.includes('alert-danger')) {
@@ -376,7 +358,6 @@
                         }
                     }
 
-                    console.error('Validation error found:', errorMessage);
                     showMessage(errorMessage, '#ef4444', 5000);
 
                     // Re-enable submit button
@@ -386,12 +367,10 @@
                     }
                 } else {
                     // No errors found, assume success
-                    console.log('No validation errors found, assuming success');
                     showSuccessModal();
                 }
             })
             .catch(error => {
-                console.error('Error:', error);
                 showMessage('Failed to save mood entry. Please try again.', '#ef4444', 3000);
 
                 // Re-enable submit button
@@ -420,31 +399,7 @@
             window.location.reload();
         }
 
-        function testFormSubmission() {
-            console.log('=== TESTING FORM SUBMISSION ===');
 
-            const formData = new FormData();
-            formData.append('moodLevel', '5');
-            formData.append('notes', 'Test notes');
-            formData.append('entryDate', '2024-06-14');
-            formData.append('__RequestVerificationToken', document.querySelector('input[name="__RequestVerificationToken"]').value);
-
-            console.log('Sending test data to TestCreate endpoint...');
-
-            fetch('@Url.Action("TestCreate", "MoodEntries")', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log('Test response:', data);
-                showMessage('Test successful! Check console for details.', '#10b981', 3000);
-            })
-            .catch(error => {
-                console.error('Test error:', error);
-                showMessage('Test failed! Check console for details.', '#ef4444', 3000);
-            });
-        }
 
         function removeTag(tag) {
             selectedTags = selectedTags.filter(t => t !== tag);
@@ -537,7 +492,7 @@
                         }
                     }
                 } catch (e) {
-                    console.error('Error loading auto-save:', e);
+                    // Silently handle auto-save loading errors
                 }
             }
         }

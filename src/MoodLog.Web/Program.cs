@@ -8,6 +8,7 @@ using MoodLog.Application.Services;
 using MoodLog.Application.Services.AI;
 using MoodLog.Application.Services.Gamification;
 using MoodLog.Core.Events;
+using MoodLog.Web.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -52,6 +53,12 @@ builder.Services.AddScoped<MoodLog.Application.Services.Diagnostics.ISystemDiagn
 builder.Services.AddHttpClient<MoodLog.Application.Services.External.IWellnessQuoteService,
     MoodLog.Application.Services.External.WellnessQuoteService>();
 builder.Services.AddScoped<MoodLog.Application.Services.Background.DataCleanupService>();
+
+// Register enhanced services for final touches
+builder.Services.AddScoped<IMoodAnalyticsService, MoodAnalyticsService>();
+builder.Services.AddScoped<IValidationService, ValidationService>();
+builder.Services.AddSingleton<MoodLog.Web.Services.PerformanceMonitoringService>();
+builder.Services.AddSingleton<MoodLog.Web.Services.SecurityService>();
 
 // Register event system with delegates
 builder.Services.AddSingleton<IMoodEntryEventPublisher, MoodEntryEventPublisher>();
@@ -110,6 +117,9 @@ if (!app.Environment.IsDevelopment())
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
+
+// Add enhanced error handling middleware
+app.UseMiddleware<ErrorHandlingMiddleware>();
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
