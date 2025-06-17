@@ -87,7 +87,7 @@
         <div class="section-header">
             <h3>Recent Mood Timeline</h3>
             <div class="section-actions">
-                <a href="@Url.Action("Create", "MoodEntries")" class="btn btn-primary btn-sm">
+                <a href="@Url.Action("Create", "MoodEntries")" class="btn btn-primary btn-sm hide-new-entry">
                     <i class="fas fa-plus me-1"></i>New Entry
                 </a>
                 <a href="@Url.Action("Index", "MoodEntries")" class="btn btn-outline-primary btn-sm">
@@ -173,6 +173,11 @@
 </div>
 
 <style>
+        /* Temporarily hide New Entry buttons */
+        .hide-new-entry {
+            display: none !important;
+        }
+
         /* Interactive Tag System Styles */
         .tag-selection-container {
             background: rgba(255, 255, 255, 0.05);

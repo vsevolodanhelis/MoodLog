@@ -62,18 +62,6 @@
   ],
   "shortcuts": [
     {
-      "name": "New Mood Entry",
-      "short_name": "New Entry",
-      "description": "Quickly log your current mood",
-      "url": "/MoodEntries/Create",
-      "icons": [
-        {
-          "src": "/images/shortcut-new.png",
-          "sizes": "96x96"
-        }
-      ]
-    },
-    {
       "name": "View History",
       "short_name": "History",
       "description": "View your mood history",

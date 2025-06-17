@@ -12,7 +12,7 @@
             <p class="text-muted">View and manage all your mood tracking entries</p>
         </div>
         <div class="header-actions">
-            <a href="@Url.Action("Create", "MoodEntries")" class="btn btn-primary">
+            <a href="@Url.Action("Create", "MoodEntries")" class="btn btn-primary hide-new-entry">
                 <i class="fas fa-plus me-2"></i>New Entry
             </a>
             <a href="@Url.Action("History", "MoodEntries")" class="btn btn-outline-primary">
@@ -167,7 +167,7 @@
                 <div class="empty-icon">📝</div>
                 <h3>No mood entries yet</h3>
                 <p>Start tracking your mood to see your entries here.</p>
-                <a href="@Url.Action("Create", "MoodEntries")" class="btn btn-primary">
+                <a href="@Url.Action("Create", "MoodEntries")" class="btn btn-primary hide-new-entry">
                     <i class="fas fa-plus me-2"></i>Create Your First Entry
                 </a>
             </div>

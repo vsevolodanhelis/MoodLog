@@ -19,6 +19,27 @@
 
     @await RenderSectionAsync("Styles", required: false)
     <style>
+        /* Temporarily hide New Entry buttons - Multiple approaches for maximum compatibility */
+        .hide-new-entry {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            height: 0 !important;
+            width: 0 !important;
+            overflow: hidden !important;
+            position: absolute !important;
+            left: -9999px !important;
+        }
+
+        /* Target specific button text content */
+        a[href*="MoodEntries/Create"],
+        button[onclick*="Create"],
+        .btn:contains("New Entry"),
+        .btn:contains("Create"),
+        .btn:contains("Log Another") {
+            display: none !important;
+        }
+
         /* Additional Dashboard-specific Variables */
         :root {
             /* Dashboard-specific overrides */
@@ -2633,10 +2654,10 @@
             const isInInputField = ['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName);
             const isContentEditable = e.target.contentEditable === 'true';
 
-            // Ctrl+N - New Entry
+            // Ctrl+N - New Entry (temporarily disabled)
             if (e.ctrlKey && e.key === 'n') {
                 e.preventDefault();
-                window.location.href = '@Url.Action("Create", "MoodEntries")';
+                // Temporarily disabled: window.location.href = '@Url.Action("Create", "MoodEntries")';
                 return;
             }
 
@@ -2782,7 +2803,6 @@
 
             const shortcuts = [
                 { category: 'Navigation', items: [
-                    'Ctrl+N - New mood entry',
                     'Ctrl+H or H - View history',
                     'Ctrl+A or A - View analytics',
                     'Ctrl+, or S - Settings',
@@ -2936,8 +2956,44 @@
             }
         }
 
+        // Hide New Entry buttons with JavaScript as backup
+        function hideNewEntryButtons() {
+            // Hide by class
+            document.querySelectorAll('.hide-new-entry').forEach(el => {
+                el.style.display = 'none';
+                el.style.visibility = 'hidden';
+                el.style.opacity = '0';
+                el.style.height = '0';
+                el.style.width = '0';
+                el.style.overflow = 'hidden';
+                el.style.position = 'absolute';
+                el.style.left = '-9999px';
+            });
+
+            // Hide by href containing Create
+            document.querySelectorAll('a[href*="MoodEntries/Create"]').forEach(el => {
+                el.style.display = 'none';
+            });
+
+            // Hide buttons with specific text content
+            document.querySelectorAll('button, a').forEach(el => {
+                const text = el.textContent || el.innerText || '';
+                if (text.includes('New Entry') || text.includes('Log Another') || text.includes('Create Your First Entry') || text.includes('Add Your First Entry')) {
+                    el.style.display = 'none';
+                }
+            });
+        }
+
         // Initialize page transitions
         document.addEventListener('DOMContentLoaded', function() {
+            // Hide buttons immediately
+            hideNewEntryButtons();
+
+            // Hide buttons again after a short delay to catch dynamically loaded content
+            setTimeout(hideNewEntryButtons, 100);
+            setTimeout(hideNewEntryButtons, 500);
+            setTimeout(hideNewEntryButtons, 1000);
+
             initPageTransitions();
 
             // Add bounce-in animation to cards
